@@ -9,6 +9,19 @@ import { Task, Column } from "../types/kanban";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 
 const Index = () => {
+  const [tasks, setTasks] = useState<Task[]>([
+    {
+      id: "task-1",
+      title: "Create Your First Task",
+      description: "Press add task to get started",
+      columnId: "todo",
+      category: "General",
+      priority: "high",
+      dueDate: new Date("2025-06-10"),
+      createdAt: new Date(),
+    }
+  ]);
+
   const [columns, setColumns] = useState<Column[]>([
     { id: "todo", title: "To Do", taskIds: ["task-1"] },
     { id: "in-progress", title: "In Progress", taskIds: ["task-2"] },
@@ -16,23 +29,30 @@ const Index = () => {
     { id: "done", title: "Done", taskIds: [] },
   ]);
 
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [preSelectedColumnId, setPreSelectedColumnId] = useState<string | null>(null);
 
   const addTask = (newTask: Omit<Task, "id" | "createdAt">) => {
     const task: Task = {
-      ...newTask,
+      title: newTask.title,
+      description: newTask.description || "", // default empty description
+      columnId: newTask.columnId,
+      category: newTask.category || "General", // default category
+      priority: newTask.priority || "low",  // default priority
+      dueDate: newTask.dueDate, // optional
       id: `task-${Date.now()}`,
       createdAt: new Date(),
     };
-    
+
     setTasks(prev => [...prev, task]);
-    setColumns(prev => prev.map(col => 
-      col.id === task.columnId 
-        ? { ...col, taskIds: [...col.taskIds, task.id] }
-        : col
-    ));
+    setColumns(prev =>
+      prev.map(col =>
+        col.id === task.columnId
+          ? { ...col, taskIds: [...col.taskIds, task.id] }
+          : col
+      )
+    );
   };
 
   const updateTask = (taskId: string, updates: Partial<Task>) => {
@@ -114,16 +134,16 @@ const Index = () => {
 
   const handleCreateTaskFromColumn = (columnId: string) => {
     setPreSelectedColumnId(columnId);
-    setIsCreateModalOpen(true);
+    setIsCreateOpen(true);
   };
 
   const handleCreateTaskFromHeader = () => {
     setPreSelectedColumnId(null);
-    setIsCreateModalOpen(true);
+    setIsCreateOpen(true);
   };
 
-  const handleCloseModal = () => {
-    setIsCreateModalOpen(false);
+  const handleClose = () => {
+    setIsCreateOpen(false);
     setPreSelectedColumnId(null);
   };
 
@@ -187,8 +207,8 @@ const Index = () => {
       </main>
 
       <CreateTask
-        isOpen={isCreateModalOpen}
-        onClose={handleCloseModal}
+        isOpen={isCreateOpen}
+        onClose={handleClose}
         onCreateTask={addTask}
         columns={columns}
         preSelectedColumnId={preSelectedColumnId}
