@@ -10,12 +10,14 @@ import { Board, CreateBoardData } from "../types/board";
 import { ProjectSelector } from "../components/ProjectSelector";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { useToast } from "../components/ui/use-toast";
+import { useAuth } from "../contexts/AuthContext";
 
 const Index = () => {
   const { toast } = useToast();
 
-  const [boards, setBoards] = useState<Board[]>(() => {
-    const stored = localStorage.getItem("boards");
+  const { user } = useAuth();
+const [boards, setBoards] = useState<Board[]>(() => {
+    const stored = localStorage.getItem(`boards-${user?.id}`);
     if (stored) {
       const parsed = JSON.parse(stored);
       return parsed.map((board: any) => ({
@@ -64,8 +66,10 @@ const Index = () => {
   const columns = currentBoard?.columns || [];
 
   useEffect(() => {
-    localStorage.setItem("boards", JSON.stringify(boards));
-  }, [boards]);
+    if (user?.id) {
+      localStorage.setItem(`boards-${user.id}`, JSON.stringify(boards));
+    }
+  }, [boards, user?.id]);
 
   // Columns are now managed within the board state
 
@@ -213,12 +217,24 @@ const Index = () => {
   };
 
   const addColumn = (title: string) => {
+    if (!currentBoard) return;
+    
     const newColumn: Column = {
       id: `column-${Date.now()}`,
       title,
       taskIds: []
     };
-    setColumns(prev => [...prev, newColumn]);
+
+    setBoards(prev =>
+      prev.map(board =>
+        board.id === currentBoardId
+          ? {
+              ...board,
+              columns: [...board.columns, newColumn]
+            }
+          : board
+      )
+    );
   };
 
   const deleteColumn = (columnId: string) => {
