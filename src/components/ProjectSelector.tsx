@@ -4,7 +4,9 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
 import { ScrollArea } from "./ui/scroll-area";
-import { Menu } from "lucide-react";
+import { Menu, LogOut } from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
+import { Separator } from "./ui/separator";
 
 interface ProjectSelectorProps {
   boards: Board[];
@@ -21,6 +23,7 @@ export const ProjectSelector = ({
 }: ProjectSelectorProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [newBoardName, setNewBoardName] = useState("");
+  const { logout } = useAuth();
 
   const handleCreateBoard = () => {
     if (newBoardName.trim()) {
@@ -50,7 +53,7 @@ export const ProjectSelector = ({
             />
             <Button onClick={handleCreateBoard}>Create</Button>
           </div>
-          <ScrollArea className="h-[calc(100vh-12rem)] pr-4">
+          <ScrollArea className="h-[calc(100vh-13rem)] pr-4">
             <div className="space-y-2">
               {boards.map((board) => (
                 <Button
@@ -67,6 +70,15 @@ export const ProjectSelector = ({
               ))}
             </div>
           </ScrollArea>
+          <Separator className="my-4" />
+          <Button
+            variant="ghost"
+            className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950"
+            onClick={logout}
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            Sign Out
+          </Button>
         </div>
       </SheetContent>
     </Sheet>
