@@ -1,4 +1,4 @@
-import { useState } from "react";
+// import { useState } from "react";
 // import { KanbanBoard } from "../components/ui/KanbanBoard";
 // import { CalendarView } from "../components/CalendarView";
 // import { ListView } from "../components/ui/ListView";
@@ -9,7 +9,11 @@ import { useState } from "react";
 // import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 
 const Index = () => {
-
+    return (
+        <div>
+            Hello
+        </div>
+    );
 };
 
 export default Index;
