@@ -9,39 +9,6 @@ import { Task, Column } from "../types/kanban";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 
 const Index = () => {
-  const [tasks, setTasks] = useState<Task[]>([
-    {
-      id: "task-1",
-      title: "Design system updates",
-      description: "Update the design tokens and component library",
-      columnId: "todo",
-      category: "design",
-      priority: "high",
-      dueDate: new Date("2025-06-10"),
-      createdAt: new Date(),
-    },
-    {
-      id: "task-2",
-      title: "API integration",
-      description: "Connect the frontend with the backend API",
-      columnId: "in-progress",
-      category: "development",
-      priority: "medium",
-      dueDate: new Date("2025-06-15"),
-      createdAt: new Date(),
-    },
-    {
-      id: "task-3",
-      title: "User testing session",
-      description: "Conduct usability testing with 5 users",
-      columnId: "review",
-      category: "research",
-      priority: "low",
-      dueDate: new Date("2025-06-20"),
-      createdAt: new Date(),
-    },
-  ]);
-
   const [columns, setColumns] = useState<Column[]>([
     { id: "todo", title: "To Do", taskIds: ["task-1"] },
     { id: "in-progress", title: "In Progress", taskIds: ["task-2"] },
