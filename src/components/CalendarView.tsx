@@ -300,7 +300,7 @@ export const CalendarView = ({ tasks, onUpdateTask }: CalendarViewProps) => {
       {viewMode === 'month' ? renderMonthView() : renderWeekView()}
 
       {editingTask && (
-        <EditTaskModal
+        <EditTask
           task={editingTask}
           isOpen={!!editingTask}
           onClose={() => setEditingTask(null)}

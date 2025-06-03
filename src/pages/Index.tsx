@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { KanbanBoard } from "../components/Board";
 import { CalendarView } from "../components/CalendarView";
 import { ListView } from "../components/ListView";
@@ -9,25 +9,60 @@ import { Task, Column } from "../types/kanban";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 
 const Index = () => {
-  const [tasks, setTasks] = useState<Task[]>([
-    {
-      id: "task-1",
-      title: "Create Your First Task",
-      description: "Press add task to get started",
-      columnId: "todo",
-      category: "General",
-      priority: "high",
-      dueDate: new Date("2025-06-10"),
-      createdAt: new Date(),
+  const [tasks, setTasks] = useState<Task[]>(() => {
+    const stored = localStorage.getItem("tasks");
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      return parsed.map((task: any) => ({
+        ...task,
+        dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
+        createdAt: new Date(task.createdAt),
+      }));
     }
-  ]);
+    return [
+      {
+        id: "task-1",
+        title: "Create Your First Task",
+        description: "Press add task to get started",
+        columnId: "todo",
+        category: "General",
+        priority: "high",
+        dueDate: new Date("2025-06-10"),
+        createdAt: new Date(),
+      },
+    ];
+  });
 
-  const [columns, setColumns] = useState<Column[]>([
-    { id: "todo", title: "To Do", taskIds: ["task-1"] },
-    { id: "in-progress", title: "In Progress", taskIds: ["task-2"] },
-    { id: "review", title: "Review", taskIds: ["task-3"] },
-    { id: "done", title: "Done", taskIds: [] },
-  ]);
+  useEffect(() => {
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+  }, [tasks]);
+
+  // Reconstruct columns from tasks, grouping them by columnId
+const initialColumns: Column[] = [
+  { id: "todo", title: "To Do", taskIds: [] },
+  { id: "in-progress", title: "In Progress", taskIds: [] },
+  { id: "review", title: "Review", taskIds: [] },
+  { id: "done", title: "Done", taskIds: [] },
+];
+
+const [columns, setColumns] = useState<Column[]>(() => {
+  // Create a copy of the initial columns, then assign taskIds based on tasks
+  const cols = initialColumns.map(col => ({ ...col }));
+  tasks.forEach(task => {
+    const col = cols.find(c => c.id === task.columnId);
+    if (col) {
+      col.taskIds.push(task.id);
+    }
+  });
+  return cols;
+});
+
+  // const [columns, setColumns] = useState<Column[]>([
+  //   { id: "todo", title: "To Do", taskIds: ["task-1"] },
+  //   { id: "in-progress", title: "In Progress", taskIds: ["task-2"] },
+  //   { id: "review", title: "Review", taskIds: ["task-3"] },
+  //   { id: "done", title: "Done", taskIds: [] },
+  // ]);
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
