@@ -6,133 +6,210 @@ import { Header } from "../components/Header";
 import { CreateTask } from "../components/CreateTask";
 import { ColumnManager } from "../components/ColumnManager";
 import { Task, Column } from "../types/kanban";
+import { Board, CreateBoardData } from "../types/board";
+import { ProjectSelector } from "../components/ProjectSelector";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
+import { useToast } from "../components/ui/use-toast";
 
 const Index = () => {
-  const [tasks, setTasks] = useState<Task[]>(() => {
-    const stored = localStorage.getItem("tasks");
+  const { toast } = useToast();
+
+  const [boards, setBoards] = useState<Board[]>(() => {
+    const stored = localStorage.getItem("boards");
     if (stored) {
       const parsed = JSON.parse(stored);
-      return parsed.map((task: any) => ({
-        ...task,
-        dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
-        createdAt: new Date(task.createdAt),
+      return parsed.map((board: any) => ({
+        ...board,
+        tasks: board.tasks.map((task: any) => ({
+          ...task,
+          dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
+          createdAt: new Date(task.createdAt),
+        })),
+        createdAt: new Date(board.createdAt),
       }));
     }
     return [
       {
-        id: "task-1",
-        title: "Create Your First Task",
-        description: "Press add task to get started",
-        columnId: "todo",
-        category: "General",
-        priority: "high",
-        dueDate: new Date("2025-06-10"),
+        id: "board-1",
+        name: "My First Board",
         createdAt: new Date(),
+        columns: [
+          { id: "todo", title: "To Do", taskIds: ["task-1"] },
+          { id: "in-progress", title: "In Progress", taskIds: [] },
+          { id: "review", title: "Review", taskIds: [] },
+          { id: "done", title: "Done", taskIds: [] },
+        ],
+        tasks: [
+          {
+            id: "task-1",
+            title: "Create Your First Task",
+            description: "Press add task to get started",
+            columnId: "todo",
+            category: "General",
+            priority: "high",
+            dueDate: new Date("2025-06-10"),
+            createdAt: new Date(),
+          },
+        ],
       },
     ];
   });
 
-  useEffect(() => {
-    localStorage.setItem("tasks", JSON.stringify(tasks));
-  }, [tasks]);
-
-  // Reconstruct columns from tasks, grouping them by columnId
-const initialColumns: Column[] = [
-  { id: "todo", title: "To Do", taskIds: [] },
-  { id: "in-progress", title: "In Progress", taskIds: [] },
-  { id: "review", title: "Review", taskIds: [] },
-  { id: "done", title: "Done", taskIds: [] },
-];
-
-const [columns, setColumns] = useState<Column[]>(() => {
-  // Create a copy of the initial columns, then assign taskIds based on tasks
-  const cols = initialColumns.map(col => ({ ...col }));
-  tasks.forEach(task => {
-    const col = cols.find(c => c.id === task.columnId);
-    if (col) {
-      col.taskIds.push(task.id);
-    }
+  const [currentBoardId, setCurrentBoardId] = useState<string>(() => {
+    return boards[0]?.id || "";
   });
-  return cols;
-});
 
-  // const [columns, setColumns] = useState<Column[]>([
-  //   { id: "todo", title: "To Do", taskIds: ["task-1"] },
-  //   { id: "in-progress", title: "In Progress", taskIds: ["task-2"] },
-  //   { id: "review", title: "Review", taskIds: ["task-3"] },
-  //   { id: "done", title: "Done", taskIds: [] },
-  // ]);
+  const currentBoard = boards.find(board => board.id === currentBoardId);
+  const tasks = currentBoard?.tasks || [];
+  const columns = currentBoard?.columns || [];
+
+  useEffect(() => {
+    localStorage.setItem("boards", JSON.stringify(boards));
+  }, [boards]);
+
+  // Columns are now managed within the board state
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [preSelectedColumnId, setPreSelectedColumnId] = useState<string | null>(null);
 
+  const createBoard = (data: CreateBoardData) => {
+    const newBoard: Board = {
+      id: `board-${Date.now()}`,
+      name: data.name,
+      createdAt: new Date(),
+      columns: [
+        { id: "todo", title: "To Do", taskIds: [] },
+        { id: "in-progress", title: "In Progress", taskIds: [] },
+        { id: "review", title: "Review", taskIds: [] },
+        { id: "done", title: "Done", taskIds: [] },
+      ],
+      tasks: [],
+    };
+
+    setBoards(prev => [...prev, newBoard]);
+    setCurrentBoardId(newBoard.id);
+    toast({
+      title: "Board created",
+      description: `${newBoard.name} has been created successfully.`,
+    });
+  };
+
   const addTask = (newTask: Omit<Task, "id" | "createdAt">) => {
+    if (!currentBoard) return;
+
     const task: Task = {
       title: newTask.title,
-      description: newTask.description || "", // default empty description
+      description: newTask.description || "",
       columnId: newTask.columnId,
-      category: newTask.category || "General", // default category
-      priority: newTask.priority || "low",  // default priority
-      dueDate: newTask.dueDate, // optional
+      category: newTask.category || "General",
+      priority: newTask.priority || "low",
+      dueDate: newTask.dueDate,
       id: `task-${Date.now()}`,
       createdAt: new Date(),
     };
 
-    setTasks(prev => [...prev, task]);
-    setColumns(prev =>
-      prev.map(col =>
-        col.id === task.columnId
-          ? { ...col, taskIds: [...col.taskIds, task.id] }
-          : col
+    setBoards(prev =>
+      prev.map(board =>
+        board.id === currentBoardId
+          ? {
+              ...board,
+              tasks: [...board.tasks, task],
+              columns: board.columns.map(col =>
+                col.id === task.columnId
+                  ? { ...col, taskIds: [...col.taskIds, task.id] }
+                  : col
+              ),
+            }
+          : board
       )
     );
   };
 
   const updateTask = (taskId: string, updates: Partial<Task>) => {
-    setTasks(prev => prev.map(task => 
-      task.id === taskId ? { ...task, ...updates } : task
-    ));
+    setBoards(prev =>
+      prev.map(board =>
+        board.id === currentBoardId
+          ? {
+              ...board,
+              tasks: board.tasks.map(task =>
+                task.id === taskId ? { ...task, ...updates } : task
+              ),
+            }
+          : board
+      )
+    );
   };
 
   const deleteTask = (taskId: string) => {
-    setTasks(prev => prev.filter(task => task.id !== taskId));
-    setColumns(prev => prev.map(col => ({
-      ...col,
-      taskIds: col.taskIds.filter(id => id !== taskId)
-    })));
+    setBoards(prev =>
+      prev.map(board =>
+        board.id === currentBoardId
+          ? {
+              ...board,
+              tasks: board.tasks.filter(task => task.id !== taskId),
+              columns: board.columns.map(col => ({
+                ...col,
+                taskIds: col.taskIds.filter(id => id !== taskId),
+              })),
+            }
+          : board
+      )
+    );
   };
 
   const moveTask = (taskId: string, newColumnId: string, newIndex: number) => {
-    const task = tasks.find(t => t.id === taskId);
+    if (!currentBoard) return;
+
+    const task = currentBoard.tasks.find(t => t.id === taskId);
     if (!task) return;
 
-    setTasks(prev => prev.map(t => 
-      t.id === taskId ? { ...t, columnId: newColumnId } : t
-    ));
+    const oldColumnId = task.columnId;
 
-    setColumns(prev => {
-      const newColumns = prev.map(col => ({
-        ...col,
-        taskIds: col.taskIds.filter(id => id !== taskId)
-      }));
-
-      return newColumns.map(col => {
-        if (col.id === newColumnId) {
-          const newTaskIds = [...col.taskIds];
-          newTaskIds.splice(newIndex, 0, taskId);
-          return { ...col, taskIds: newTaskIds };
-        }
-        return col;
-      });
-    });
+    setBoards(prev =>
+      prev.map(board =>
+        board.id === currentBoardId
+          ? {
+              ...board,
+              tasks: board.tasks.map(t =>
+                t.id === taskId ? { ...t, columnId: newColumnId } : t
+              ),
+              columns: board.columns.map(col => {
+                if (col.id === oldColumnId) {
+                  return {
+                    ...col,
+                    taskIds: col.taskIds.filter(id => id !== taskId),
+                  };
+                }
+                if (col.id === newColumnId) {
+                  const newTaskIds = [...col.taskIds];
+                  newTaskIds.splice(newIndex, 0, taskId);
+                  return {
+                    ...col,
+                    taskIds: newTaskIds,
+                  };
+                }
+                return col;
+              }),
+            }
+          : board
+      )
+    );
   };
 
   const updateColumn = (columnId: string, title: string) => {
-    setColumns(prev => prev.map(col => 
-      col.id === columnId ? { ...col, title } : col
-    ));
+    setBoards(prev =>
+      prev.map(board =>
+        board.id === currentBoardId
+          ? {
+              ...board,
+              columns: board.columns.map(col =>
+                col.id === columnId ? { ...col, title } : col
+              ),
+            }
+          : board
+      )
+    );
   };
 
   const addColumn = (title: string) => {
@@ -145,25 +222,36 @@ const [columns, setColumns] = useState<Column[]>(() => {
   };
 
   const deleteColumn = (columnId: string) => {
-    // Move tasks from deleted column to first column
-    const tasksToMove = tasks.filter(task => task.columnId === columnId);
-    const firstColumn = columns.find(col => col.id !== columnId);
-    
+    if (!currentBoard) return;
+
+    const tasksToMove = currentBoard.tasks.filter(task => task.columnId === columnId);
+    const firstColumn = currentBoard.columns.find(col => col.id !== columnId);
+
     if (firstColumn) {
-      setTasks(prev => prev.map(task => 
-        task.columnId === columnId 
-          ? { ...task, columnId: firstColumn.id }
-          : task
-      ));
-      
-      setColumns(prev => {
-        const filtered = prev.filter(col => col.id !== columnId);
-        return filtered.map(col => 
-          col.id === firstColumn.id 
-            ? { ...col, taskIds: [...col.taskIds, ...tasksToMove.map(t => t.id)] }
-            : col
-        );
-      });
+      setBoards(prev =>
+        prev.map(board =>
+          board.id === currentBoardId
+            ? {
+                ...board,
+                tasks: board.tasks.map(task =>
+                  task.columnId === columnId
+                    ? { ...task, columnId: firstColumn.id }
+                    : task
+                ),
+                columns: board.columns
+                  .filter(col => col.id !== columnId)
+                  .map(col =>
+                    col.id === firstColumn.id
+                      ? {
+                          ...col,
+                          taskIds: [...col.taskIds, ...tasksToMove.map(t => t.id)],
+                        }
+                      : col
+                  ),
+              }
+            : board
+        )
+      );
     }
   };
 
@@ -189,12 +277,23 @@ const [columns, setColumns] = useState<Column[]>(() => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
-      <Header 
-        onCreateTask={handleCreateTaskFromHeader}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-      />
-      
+      <div className="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-b border-slate-200 dark:border-slate-700">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center space-x-4">
+            <ProjectSelector
+              boards={boards}
+              currentBoard={currentBoard || null}
+              onSelectBoard={(board) => setCurrentBoardId(board.id)}
+              onCreateBoard={createBoard}
+            />
+            <Header
+              onCreateTask={handleCreateTaskFromHeader}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+            />
+          </div>
+        </div>
+      </div>
       <main className="container mx-auto px-4 py-8">
         <Tabs defaultValue="board" className="w-full">
           <div className="flex items-center justify-between mb-8">
