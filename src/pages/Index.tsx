@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { invoke } from "@tauri-apps/api";
 import { KanbanBoard } from "../components/Board";
 import { CalendarView } from "../components/CalendarView";
 import { ListView } from "../components/ListView";
@@ -14,58 +15,94 @@ import { useToast } from "../components/ui/use-toast";
 const Index = () => {
   const { toast } = useToast();
 
-const [boards, setBoards] = useState<Board[]>(() => {
-    const stored = localStorage.getItem('boards');
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      return parsed.map((board: any) => ({
-        ...board,
-        tasks: board.tasks.map((task: any) => ({
-          ...task,
-          dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
-          createdAt: new Date(task.createdAt),
-        })),
-        createdAt: new Date(board.createdAt),
-      }));
-    }
-    return [
-      {
-        id: "board-1",
-        name: "My First Board",
-        createdAt: new Date(),
-        columns: [
-          { id: "todo", title: "To Do", taskIds: ["task-1"] },
-          { id: "in-progress", title: "In Progress", taskIds: [] },
-          { id: "review", title: "Review", taskIds: [] },
-          { id: "done", title: "Done", taskIds: [] },
-        ],
-        tasks: [
-          {
-            id: "task-1",
-            title: "Create Your First Task",
-            description: "Press add task to get started",
-            columnId: "todo",
-            category: "General",
-            priority: "high",
-            dueDate: new Date("2025-06-10"),
-            createdAt: new Date(),
-          },
-        ],
-      },
-    ];
+  const [boards, setBoards] = useState<Board[]>(() => {
+    // Initialize with empty array, data will be loaded in useEffect
+    return [];
   });
 
-  const [currentBoardId, setCurrentBoardId] = useState<string>(() => {
-    return boards[0]?.id || "";
-  });
+  useEffect(() => {
+    // Load boards from file when component mounts
+    const loadBoards = async () => {
+      try {
+        const boardsJson = await invoke('load_boards');
+        const parsed = JSON.parse(boardsJson as string);
+        const processedBoards = parsed.map((board: any) => ({
+          ...board,
+          tasks: board.tasks.map((task: any) => ({
+            ...task,
+            dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
+            createdAt: new Date(task.createdAt),
+          })),
+          createdAt: new Date(board.createdAt),
+        }));
+        
+        setBoards(processedBoards.length > 0 ? processedBoards : [{
+          id: "board-1",
+          name: "My First Board",
+          createdAt: new Date(),
+          columns: [
+            { id: "todo", title: "To Do", taskIds: ["task-1"] },
+            { id: "in-progress", title: "In Progress", taskIds: [] },
+            { id: "review", title: "Review", taskIds: [] },
+            { id: "done", title: "Done", taskIds: [] },
+          ],
+          tasks: [
+            {
+              id: "task-1",
+              title: "Create Your First Task",
+              description: "Press add task to get started",
+              columnId: "todo",
+              category: "General",
+              priority: "high",
+              dueDate: new Date("2025-06-10"),
+              createdAt: new Date(),
+            },
+          ],
+        }]);
+      } catch (error) {
+        console.error('Error loading boards:', error);
+        toast({
+          title: "Error loading boards",
+          description: "Failed to load your boards. Using default board.",
+          variant: "destructive"
+        });
+      }
+    };
+
+    loadBoards();
+  }, []);
+
+  useEffect(() => {
+    // Save boards to file whenever they change
+    const saveBoards = async () => {
+      try {
+        await invoke('save_boards', { boardsJson: JSON.stringify(boards) });
+      } catch (error) {
+        console.error('Error saving boards:', error);
+        toast({
+          title: "Error saving changes",
+          description: "Failed to save your changes.",
+          variant: "destructive"
+        });
+      }
+    };
+
+    if (boards.length > 0) {
+      saveBoards();
+    }
+  }, [boards]);
+
+  const [currentBoardId, setCurrentBoardId] = useState<string>("");
+
+  useEffect(() => {
+    if (boards.length > 0 && !currentBoardId) {
+      setCurrentBoardId(boards[0].id);
+    }
+  }, [boards]);
 
   const currentBoard = boards.find(board => board.id === currentBoardId);
   const tasks = currentBoard?.tasks || [];
   const columns = currentBoard?.columns || [];
-
-  useEffect(() => {
-    localStorage.setItem('boards', JSON.stringify(boards));
-  }, [boards]);
 
   // Columns are now managed within the board state
 

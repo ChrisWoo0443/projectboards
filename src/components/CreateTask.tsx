@@ -5,10 +5,6 @@ import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { Label } from "../components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
-import { Calendar } from "../components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "../components/ui/popover";
-import { CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
 import { CreateTaskData, Column } from "../types/kanban";
 import { cn } from "../lib/utils";
 
@@ -21,7 +17,7 @@ interface CreateTaskProps {
 }
 
 export const CreateTask = ({ isOpen, onClose, onCreateTask, columns, preSelectedColumnId }: CreateTaskProps) => {
-  const [formData, setFormData] = useState<CreateTaskData & { dueDate?: Date }>({
+  const [formData, setFormData] = useState<CreateTaskData & { dueDate?: Date | string }>({ 
     title: "",
     description: "",
     columnId: "todo",
@@ -68,6 +64,26 @@ export const CreateTask = ({ isOpen, onClose, onCreateTask, columns, preSelected
       priority: "medium",
     });
     onClose();
+  };
+
+  const handleDateChange = (value: string) => {
+    if (!value) {
+      setFormData(prev => ({ ...prev, dueDate: undefined }));
+      return;
+    }
+
+    if (value.length <= 10) { // Only update while typing the date
+      setFormData(prev => ({ ...prev, dueDate: value }));
+    }
+
+    // Try to parse the completed date
+    if (value.length === 10) {
+      const [month, day, year] = value.split('/');
+      const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      if (!isNaN(date.getTime())) {
+        setFormData(prev => ({ ...prev, dueDate: date }));
+      }
+    }
   };
 
   return (
@@ -150,29 +166,11 @@ export const CreateTask = ({ isOpen, onClose, onCreateTask, columns, preSelected
 
             <div>
               <Label>Due Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !formData.dueDate && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formData.dueDate ? format(formData.dueDate, "PPP") : "Pick a date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={formData.dueDate}
-                    onSelect={(date) => setFormData(prev => ({ ...prev, dueDate: date }))}
-                    initialFocus
-                    className={cn("p-3 pointer-events-auto")}
-                  />
-                </PopoverContent>
-              </Popover>
+              <Input
+                value={typeof formData.dueDate === 'string' ? formData.dueDate : formData.dueDate ? formData.dueDate.toLocaleDateString('en-US') : ''}
+                onChange={(e) => handleDateChange(e.target.value)}
+                placeholder="MM/DD/YYYY"
+              />
             </div>
           </div>
 
