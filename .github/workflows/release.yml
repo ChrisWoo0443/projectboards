@@ -1,51 +1,49 @@
-name: 'publish'
-
+name: Release
 on:
   push:
     branches:
       - release
 
 jobs:
-  publish-tauri:
+  release:
     permissions:
       contents: write
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - platform: 'macos-latest'
-            args: '--target aarch64-apple-darwin'
-          - platform: 'macos-latest'
-            args: '--target x86_64-apple-darwin'
-          - platform: 'ubuntu-22.04'
-            args: ''
-          - platform: 'windows-latest'
-            args: ''
+        platform: [macos-latest, ubuntu-20.04, windows-latest]
     runs-on: ${{ matrix.platform }}
+
     steps:
-      - uses: actions/checkout@v4
-      - name: setup node
-        uses: actions/setup-node@v4
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install Node.js
+        uses: actions/setup-node@v3
         with:
-          node-version: lts/*
-      - name: install Rust stable
+          node-version: 20
+
+      - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
-      - name: install dependencies (ubuntu only)
-        if: matrix.platform == 'ubuntu-22.04'
+
+      - name: Install dependencies (ubuntu only)
+        if: matrix.platform == 'ubuntu-20.04'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
-      - name: install frontend dependencies
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Install frontend dependencies
         run: npm install
-      - uses: tauri-apps/tauri-action@v0
+
+      - name: Build the app
+        uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: app-v__VERSION__
-          releaseName: 'App v__VERSION__'
-          releaseBody: 'See the assets to download this version and install.'
+          tagName: v__VERSION__
+          releaseName: "Project Boards v__VERSION__"
+          releaseBody: "Download and install the application for your operating system:\n\n- Windows: .msi installer\n- macOS: .dmg installer\n- Linux: .deb or .AppImage"
           releaseDraft: true
           prerelease: false
-          args: ${{ matrix.args }}
+          includeUpdaterJson: false
+          includeRelease: false
