@@ -5,9 +5,7 @@ import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { Label } from "../components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
-import { Calendar } from "../components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "../components/ui/popover";
-import { CalendarIcon } from "lucide-react";
+
 import { format } from "date-fns";
 import { Task } from "../types/kanban";
 import { cn } from "../lib/utils";
@@ -115,30 +113,34 @@ export const EditTask = ({ task, isOpen, onClose, onUpdateTask }: EditTaskProps)
           </div>
 
           <div>
-            <Label>Due Date</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !formData.dueDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {formData.dueDate ? format(formData.dueDate, "PPP") : "Pick a date"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={formData.dueDate}
-                  onSelect={(date) => setFormData(prev => ({ ...prev, dueDate: date }))}
-                  initialFocus
-                  className={cn("p-3 pointer-events-auto")}
-                />
-              </PopoverContent>
-            </Popover>
+            <Label htmlFor="dueDate">Due Date (MM/DD/YYYY)</Label>
+            <Input
+              id="dueDate"
+              value={typeof formData.dueDate === 'string' ? formData.dueDate : formData.dueDate ? format(formData.dueDate as Date, "MM/dd/yyyy") : ""}
+              onChange={(e) => {
+                const dateStr = e.target.value;
+                const dateParts = dateStr.split("/");
+                
+                // Allow incomplete date input
+                if (dateParts.length <= 3 && dateStr.length <= 10) {
+                  // Keep the raw input value while typing
+                  setFormData(prev => ({ ...prev, dueDate: dateStr }));
+                  
+                  // Only parse and set Date object when input is complete
+                  if (dateParts.length === 3 && dateStr.length === 10) {
+                    const month = parseInt(dateParts[0]) - 1;
+                    const day = parseInt(dateParts[1]);
+                    const year = parseInt(dateParts[2]);
+                    const date = new Date(year, month, day);
+                    
+                    if (!isNaN(date.getTime())) {
+                      setFormData(prev => ({ ...prev, dueDate: date }));
+                    }
+                  }
+                }
+              }}
+              placeholder="MM/DD/YYYY"
+            />
           </div>
 
           <div className="flex justify-end space-x-3 pt-4">

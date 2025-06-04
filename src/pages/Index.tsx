@@ -10,14 +10,12 @@ import { Board, CreateBoardData } from "../types/board";
 import { ProjectSelector } from "../components/ProjectSelector";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { useToast } from "../components/ui/use-toast";
-import { useAuth } from "../contexts/AuthContext";
 
 const Index = () => {
   const { toast } = useToast();
 
-  const { user } = useAuth();
 const [boards, setBoards] = useState<Board[]>(() => {
-    const stored = localStorage.getItem(`boards-${user?.id}`);
+    const stored = localStorage.getItem('boards');
     if (stored) {
       const parsed = JSON.parse(stored);
       return parsed.map((board: any) => ({
@@ -66,16 +64,37 @@ const [boards, setBoards] = useState<Board[]>(() => {
   const columns = currentBoard?.columns || [];
 
   useEffect(() => {
-    if (user?.id) {
-      localStorage.setItem(`boards-${user.id}`, JSON.stringify(boards));
-    }
-  }, [boards, user?.id]);
+    localStorage.setItem('boards', JSON.stringify(boards));
+  }, [boards]);
 
   // Columns are now managed within the board state
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [preSelectedColumnId, setPreSelectedColumnId] = useState<string | null>(null);
+
+  const deleteBoard = (boardId: string) => {
+    if (boards.length <= 1) {
+      toast({
+        title: "Cannot delete board",
+        description: "You must have at least one board.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const remainingBoards = boards.filter(board => board.id !== boardId);
+    setBoards(remainingBoards);
+    
+    if (currentBoardId === boardId) {
+      setCurrentBoardId(remainingBoards[0].id);
+    }
+    
+    toast({
+      title: "Board deleted",
+      description: `The board has been deleted successfully.`,
+    });
+  };
 
   const createBoard = (data: CreateBoardData) => {
     const newBoard: Board = {
@@ -301,6 +320,7 @@ const [boards, setBoards] = useState<Board[]>(() => {
               currentBoard={currentBoard || null}
               onSelectBoard={(board) => setCurrentBoardId(board.id)}
               onCreateBoard={createBoard}
+              onDeleteBoard={deleteBoard}
             />
             <Header
               onCreateTask={handleCreateTaskFromHeader}

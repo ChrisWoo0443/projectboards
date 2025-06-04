@@ -21,7 +21,7 @@ interface CreateTaskProps {
 }
 
 export const CreateTask = ({ isOpen, onClose, onCreateTask, columns, preSelectedColumnId }: CreateTaskProps) => {
-  const [formData, setFormData] = useState<CreateTaskData>({
+  const [formData, setFormData] = useState<CreateTaskData & { dueDate?: Date }>({
     title: "",
     description: "",
     columnId: "todo",
@@ -40,7 +40,15 @@ export const CreateTask = ({ isOpen, onClose, onCreateTask, columns, preSelected
     e.preventDefault();
     if (!formData.title.trim()) return;
     
-    onCreateTask(formData);
+    const taskData = {
+      ...formData,
+      description: formData.description.trim(),
+      category: formData.category.trim() || "General",
+      priority: formData.priority || "medium",
+      columnId: formData.columnId || preSelectedColumnId || "todo",
+    };
+    
+    onCreateTask(taskData);
     setFormData({
       title: "",
       description: "",

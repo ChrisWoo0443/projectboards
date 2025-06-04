@@ -5,7 +5,7 @@ export interface Task {
     columnId: string;
     category: string; 
     priority: 'low' | 'medium' | 'high';
-    dueDate?: Date;
+    dueDate?: Date | string;
     createdAt: Date;
   }
   
@@ -21,7 +21,7 @@ export interface Task {
     columnId: string;
     category: string;
     priority: Task['priority'];
-    dueDate?: Date;
+    dueDate?: Date | string;
   }
   
   export type SortOption = 'dueDate' | 'priority' | 'category' | 'title' | 'createdAt';
