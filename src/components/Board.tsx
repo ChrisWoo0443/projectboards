@@ -32,8 +32,12 @@ export const KanbanBoard = ({
   const handleDragEnd = (result: DropResult) => {
     const { destination, source, draggableId, type } = result;
 
-    if (!destination) return;
+    // If no destination or dropped outside droppable area, return early
+    if (!destination) {
+      return;
+    }
     
+    // If dropped in same position, no action needed
     if (
       destination.droppableId === source.droppableId &&
       destination.index === source.index
@@ -42,7 +46,10 @@ export const KanbanBoard = ({
     }
 
     if (type === 'column') {
-      onMoveColumn(draggableId, destination.index);
+      // Ensure destination index is within valid range
+      const maxIndex = columns.length - 1;
+      const validIndex = Math.min(Math.max(0, destination.index), maxIndex);
+      onMoveColumn(draggableId, validIndex);
       return;
     }
 
@@ -65,20 +72,44 @@ export const KanbanBoard = ({
     <DragDropContext onDragEnd={handleDragEnd}>
       <div className="overflow-x-auto pb-4">
         <Droppable droppableId="board" direction="horizontal" type="column">
-          {(provided) => (
+          {(provided, snapshot) => (
             <div 
               ref={provided.innerRef}
               {...provided.droppableProps}
-              className="flex gap-6 min-w-fit"
+              className={`flex gap-6 min-w-fit transition-all duration-200 ${
+                snapshot.isDraggingOver ? 'bg-slate-50 dark:bg-slate-900/50 rounded-lg p-2' : ''
+              }`}
+              style={{
+                minHeight: '600px',
+                alignItems: 'flex-start',
+                position: 'relative'
+              }}
             >
           {columns.map((column, index) => (
             <Draggable key={column.id} draggableId={column.id} index={index}>
               {(provided, snapshot) => (
-                <div
-                  ref={provided.innerRef}
-                  {...provided.draggableProps}
-                  className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 w-80 flex-shrink-0"
-                >
+                <>
+                  {snapshot.isDragging && (
+                    <div className="w-80 flex-shrink-0" style={{ opacity: 0 }} />
+                  )}
+                  <div
+                    ref={provided.innerRef}
+                    {...provided.draggableProps}
+                    className={`bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 w-80 flex-shrink-0 transition-all duration-200 ${
+                      snapshot.isDragging 
+                        ? 'shadow-2xl rotate-2 scale-105 z-50' 
+                        : 'shadow-sm'
+                    }`}
+                    style={{
+                      ...provided.draggableProps.style,
+                      transform: snapshot.isDragging 
+                        ? `${provided.draggableProps.style?.transform} rotate(2deg)` 
+                        : provided.draggableProps.style?.transform,
+                      position: snapshot.isDragging ? 'fixed' : 'static',
+                      zIndex: snapshot.isDragging ? 9999 : 'auto',
+                      pointerEvents: snapshot.isDragging ? 'none' : 'auto'
+                    }}
+                  >
                   <div className="flex items-center justify-between mb-4" {...provided.dragHandleProps}>
                     <div className="flex items-center gap-2 flex-1">
                       {editingColumnId === column.id ? (
@@ -167,11 +198,14 @@ export const KanbanBoard = ({
                       </div>
                     )}
                   </Droppable>
-                </div>
+                  </div>
+                </>
               )}
             </Draggable>
           ))}
-          {provided.placeholder}
+              <div style={{ display: 'none' }}>
+                {provided.placeholder}
+              </div>
         </div>
       )}
     </Droppable>
