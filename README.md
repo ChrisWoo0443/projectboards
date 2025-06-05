@@ -117,6 +117,37 @@ src/
    npm run tauri build
    ```
 
+### 🍎 macOS Installation Notes
+
+When downloading and running the built application on macOS, you may encounter Gatekeeper security warnings since the app is not code-signed. Here are several ways to resolve this:
+
+#### Method 1: Remove Quarantine Attributes (Recommended)
+```bash
+xattr -c /path/to/ProjectBoards.app
+```
+
+#### Method 2: Using System Preferences
+1. Right-click the app and select "Open"
+2. Click "Open" in the security dialog that appears
+3. Alternatively, go to **System Preferences > Security & Privacy > General** and click "Open Anyway"
+
+#### Method 3: Using Terminal (Alternative)
+```bash
+# Remove the quarantine attribute specifically
+xattr -d com.apple.quarantine /path/to/ProjectBoards.app
+
+# Or remove all extended attributes
+sudo spctl --master-disable  # (Not recommended for security)
+```
+
+#### For Developers: Code Signing
+To avoid this issue for end users, consider:
+- Getting an Apple Developer account ($99/year)
+- Code signing your application with a valid Developer ID certificate
+- Optionally notarizing the app through Apple
+
+**Note**: These steps are only necessary for unsigned applications. The warnings are part of macOS's security features to protect users from potentially malicious software.
+
 ## 🎯 Usage
 
 ### Creating Tasks
