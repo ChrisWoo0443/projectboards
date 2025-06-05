@@ -21,12 +21,12 @@ The codebase has been refactored to follow modern React best practices with a cl
 
 ```
 src/
-├── components/          # Reusable UI components
+├── components/          # Reusable UI components 
 │   ├── ui/             # Base UI components (shadcn/ui)
 │   ├── Board.tsx       # Kanban board view
 │   ├── TaskCard.tsx    # Individual task component
 │   ├── CreateTask.tsx  # Task creation modal
-│   ├── EditTask.tsx    # Task editing modal
+│   ├── EditTask.tsx    # Task editing modal 
 │   ├── ListView.tsx    # List view component
 │   ├── CalendarView.tsx # Calendar view component
 │   └── Header.tsx      # Application header

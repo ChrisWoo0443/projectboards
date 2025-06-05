@@ -45,6 +45,7 @@ export const useBoards = () => {
             ...task,
             dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
             createdAt: new Date(task.createdAt),
+            completed: task.completed ?? false,
           })),
           createdAt: new Date(board.createdAt),
         }));
