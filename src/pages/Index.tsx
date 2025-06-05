@@ -456,7 +456,7 @@ const Index = () => {
           <TabsContent value="board">
             {currentBoard && (
               <KanbanBoard
-                tasks={currentBoard.tasks}
+                tasks={filteredTasks}
                 columns={currentBoard.columns}
                 onMoveTask={moveTask}
                 onUpdateTask={updateTask}
