@@ -358,6 +358,19 @@ const Index = () => {
               onSelectBoard={(board) => setCurrentBoardId(board.id)}
               onCreateBoard={createBoard}
               onDeleteBoard={deleteBoard}
+              onBoardNameChange={(boardId, newName) => {
+                setBoards(prev =>
+                  prev.map(board =>
+                    board.id === boardId
+                      ? { ...board, name: newName }
+                      : board
+                  )
+                );
+                toast({
+                  title: "Board name updated",
+                  description: `Board name has been updated to "${newName}".`
+                });
+              }}
             />
             <Header
               onCreateTask={handleCreateTaskFromHeader}

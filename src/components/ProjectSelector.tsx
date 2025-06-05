@@ -4,7 +4,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
 import { ScrollArea } from "./ui/scroll-area";
-import { Menu, Trash2 } from "lucide-react";
+import { Menu, Trash2, Pencil } from "lucide-react";
 import { Separator } from "./ui/separator";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "./ui/alert-dialog";
 
@@ -15,6 +15,7 @@ interface ProjectSelectorProps {
   onSelectBoard: (board: Board) => void;
   onCreateBoard: (data: CreateBoardData) => void;
   onDeleteBoard: (boardId: string) => void;
+  onBoardNameChange: (boardId: string, newName: string) => void;
 }
 
 export const ProjectSelector = ({
@@ -23,9 +24,12 @@ export const ProjectSelector = ({
   onSelectBoard,
   onCreateBoard,
   onDeleteBoard,
+  onBoardNameChange,
 }: ProjectSelectorProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [newBoardName, setNewBoardName] = useState("");
+  const [editingBoardId, setEditingBoardId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState("");
 
   const handleCreateBoard = () => {
     if (newBoardName.trim()) {
@@ -56,19 +60,57 @@ export const ProjectSelector = ({
             <Button onClick={handleCreateBoard}>Create</Button>
           </div>
           <ScrollArea className="h-[calc(100vh-13rem)] pr-4">
-            <div className="space-y-2">
+            <div className="space-y-4 mt-4 ml-3">
               {boards.map((board) => (
                 <div key={board.id} className="flex items-center gap-2">
-                  <Button
-                    variant={currentBoard?.id === board.id ? "default" : "ghost"}
-                    className="flex-1 justify-start"
-                    onClick={() => {
-                      onSelectBoard(board);
-                      setIsOpen(false);
-                    }}
-                  >
-                    {board.name}
-                  </Button>
+                  <div className="flex-1 flex items-center gap-2">
+                    {editingBoardId === board.id ? (
+                      <Input
+                        value={editingName}
+                        onChange={(e) => setEditingName(e.target.value)}
+                        onBlur={() => {
+                          if (editingName.trim() && editingName !== board.name) {
+                            onBoardNameChange(board.id, editingName.trim());
+                          }
+                          setEditingBoardId(null);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && editingName.trim() && editingName !== board.name) {
+                            onBoardNameChange(board.id, editingName.trim());
+                            setEditingBoardId(null);
+                          } else if (e.key === 'Escape') {
+                            setEditingBoardId(null);
+                          }
+                        }}
+                        className="flex-1 bg-transparent border border-input px-3 py-1.5 rounded-md"
+                        autoFocus
+                      />
+                    ) : (
+                      <>
+                        <Button
+                          variant={currentBoard?.id === board.id ? "default" : "ghost"}
+                          className="flex-1 justify-start pl-6 py-1.5"
+                          onClick={() => {
+                            onSelectBoard(board);
+                            setIsOpen(false);
+                          }}
+                        >
+                          {board.name}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-slate-500 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800"
+                          onClick={() => {
+                            setEditingBoardId(board.id);
+                            setEditingName(board.name);
+                          }}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      </>
+                    )}
+                  </div>
                   {boards.length > 1 && (
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
