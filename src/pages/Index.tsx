@@ -419,6 +419,7 @@ const Index = () => {
               onUpdateTask={updateTask}
               onDeleteTask={deleteTask}
               onCreateTask={handleCreateTaskFromColumn}
+              onUpdateColumn={updateColumn}
             />
           </TabsContent>
           

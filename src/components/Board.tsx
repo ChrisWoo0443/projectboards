@@ -2,7 +2,9 @@ import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea
 import { TaskCard } from "./TaskCard";
 import { Task, Column } from "../types/kanban";
 import { Button } from "../components/ui/button";
-import { Plus } from "lucide-react";
+import { Input } from "../components/ui/input";
+import { Plus, Pencil } from "lucide-react";
+import { useState } from "react";
 
 interface KanbanBoardProps {
   tasks: Task[];
@@ -11,6 +13,7 @@ interface KanbanBoardProps {
   onUpdateTask: (taskId: string, updates: Partial<Task>) => void;
   onDeleteTask: (taskId: string) => void;
   onCreateTask: (columnId: string) => void;
+  onUpdateColumn: (columnId: string, title: string) => void;
 }
 
 export const KanbanBoard = ({ 
@@ -19,8 +22,11 @@ export const KanbanBoard = ({
   onMoveTask, 
   onUpdateTask, 
   onDeleteTask,
-  onCreateTask
+  onCreateTask,
+  onUpdateColumn
 }: KanbanBoardProps) => {
+  const [editingColumnId, setEditingColumnId] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState("");
   const handleDragEnd = (result: DropResult) => {
     const { destination, source, draggableId } = result;
 
@@ -52,12 +58,48 @@ export const KanbanBoard = ({
           {columns.map((column) => (
             <div key={column.id} className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 w-80 flex-shrink-0">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-slate-900 dark:text-slate-100 flex items-center">
-                  {column.title}
-                  <span className="bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 text-xs px-2 py-1 rounded-full ml-2">
-                    {getColumnTasks(column.id).length}
-                  </span>
-                </h3>
+                <div className="flex items-center gap-2 flex-1">
+                  {editingColumnId === column.id ? (
+                    <Input
+                      value={editingTitle}
+                      onChange={(e) => setEditingTitle(e.target.value)}
+                      onBlur={() => {
+                        if (editingTitle.trim() && editingTitle !== column.title) {
+                          onUpdateColumn(column.id, editingTitle.trim());
+                        }
+                        setEditingColumnId(null);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && editingTitle.trim() && editingTitle !== column.title) {
+                          onUpdateColumn(column.id, editingTitle.trim());
+                          setEditingColumnId(null);
+                        } else if (e.key === 'Escape') {
+                          setEditingColumnId(null);
+                        }
+                      }}
+                      className="h-7 px-2"
+                      autoFocus
+                    />
+                  ) : (
+                    <h3 className="font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                      {column.title}
+                      <span className="bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 text-xs px-2 py-1 rounded-full">
+                        {getColumnTasks(column.id).length}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 text-slate-500 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800"
+                        onClick={() => {
+                          setEditingColumnId(column.id);
+                          setEditingTitle(column.title);
+                        }}
+                      >
+                        <Pencil className="h-3 w-3" />
+                      </Button>
+                    </h3>
+                  )}
+                </div>
                 <Button
                   variant="ghost"
                   size="sm"
