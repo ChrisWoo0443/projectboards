@@ -81,7 +81,7 @@ src/
 
 ## 🛠️ Technology Stack
 
-- **Frontend**: React 18 + TypeScript
+- **Frontend**: React + TypeScript
 - **UI Framework**: Tailwind CSS + shadcn/ui
 - **Desktop**: Tauri (Rust-based)
 - **Drag & Drop**: react-beautiful-dnd
@@ -125,14 +125,6 @@ When downloading and running the built application on macOS, you may encounter G
 ```bash
 xattr -c /path/to/ProjectBoards.app
 ```
-
-#### For Developers: Code Signing
-To avoid this issue for end users, consider:
-- Getting an Apple Developer account ($99/year)
-- Code signing your application with a valid Developer ID certificate
-- Optionally notarizing the app through Apple
-
-**Note**: These steps are only necessary for unsigned applications. The warnings are part of macOS's security features to protect users from potentially malicious software.
 
 ## 🎯 Usage
 
@@ -190,16 +182,3 @@ The refactored codebase emphasizes:
 - [ ] Export/import functionality
 - [ ] Mobile responsive design
 - [ ] Keyboard shortcuts
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes following the established patterns
-4. Ensure TypeScript compilation passes
-5. Test your changes thoroughly
-6. Submit a pull request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
