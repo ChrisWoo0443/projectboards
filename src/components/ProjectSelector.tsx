@@ -2,11 +2,11 @@ import { useState } from "react";
 import { Board, CreateBoardData } from "../types/board";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
 import { ScrollArea } from "./ui/scroll-area";
-import { Menu, Trash2, Pencil } from "lucide-react";
+import { Menu, Trash2, Pencil, X, ChevronLeft } from "lucide-react";
 import { Separator } from "./ui/separator";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "./ui/alert-dialog";
+import { cn } from "../lib/utils";
 
 
 interface ProjectSelectorProps {
@@ -16,6 +16,8 @@ interface ProjectSelectorProps {
   onCreateBoard: (data: CreateBoardData) => void;
   onDeleteBoard: (boardId: string) => void;
   onBoardNameChange: (boardId: string, newName: string) => void;
+  isCollapsed: boolean;
+  onToggleCollapse: () => void;
 }
 
 export const ProjectSelector = ({
@@ -25,8 +27,9 @@ export const ProjectSelector = ({
   onCreateBoard,
   onDeleteBoard,
   onBoardNameChange,
+  isCollapsed,
+  onToggleCollapse,
 }: ProjectSelectorProps) => {
-  const [isOpen, setIsOpen] = useState(false);
   const [newBoardName, setNewBoardName] = useState("");
   const [editingBoardId, setEditingBoardId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
@@ -39,28 +42,52 @@ export const ProjectSelector = ({
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-9 w-9">
-          <Menu width={18} height={18} className="scale-[2.0]" strokeWidth={1.25} /> 
+    <div className={cn(
+      "fixed left-0 top-0 h-full bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 transition-all duration-300 z-40",
+      isCollapsed ? "w-16" : "w-80"
+    )}>
+      {/* Toggle Button */}
+      <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
+        {!isCollapsed && (
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+            Project Boards
+          </h2>
+        )}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onToggleCollapse}
+          className="h-8 w-8"
+        >
+          {isCollapsed ? (
+            <Menu className="h-4 w-4" />
+          ) : (
+            <ChevronLeft className="h-4 w-4" />
+          )}
         </Button>
-      </SheetTrigger>
-      <SheetContent side="left" className="w-80">
-        <SheetHeader>
-          <SheetTitle>Project Boards</SheetTitle>
-        </SheetHeader>
-        <div className="mt-4 space-y-4">
+      </div>
+
+      {!isCollapsed && (
+        <div className="p-4 space-y-4">
+          {/* Create Board Section */}
           <div className="flex space-x-2">
             <Input
               placeholder="New board name"
               value={newBoardName}
               onChange={(e) => setNewBoardName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleCreateBoard()}
+              className="flex-1"
             />
-            <Button onClick={handleCreateBoard}>Create</Button>
+            <Button onClick={handleCreateBoard} size="sm">
+              Create
+            </Button>
           </div>
-          <ScrollArea className="h-[calc(100vh-13rem)] pr-4">
-            <div className="space-y-4 mt-4 ml-3">
+
+          <Separator />
+
+          {/* Boards List */}
+          <ScrollArea className="h-[calc(100vh-12rem)]">
+            <div className="space-y-2">
               {boards.map((board) => (
                 <div key={board.id} className="flex items-center gap-2">
                   <div className="flex-1 flex items-center gap-2">
@@ -82,20 +109,17 @@ export const ProjectSelector = ({
                             setEditingBoardId(null);
                           }
                         }}
-                        className="flex-1 bg-transparent border border-input px-3 py-1.5 rounded-md"
+                        className="flex-1 h-8"
                         autoFocus
                       />
                     ) : (
                       <>
                         <Button
                           variant={currentBoard?.id === board.id ? "default" : "ghost"}
-                          className="flex-1 justify-start pl-6 py-1.5"
-                          onClick={() => {
-                            onSelectBoard(board);
-                            setIsOpen(false);
-                          }}
+                          className="flex-1 justify-start h-8 px-3 text-sm"
+                          onClick={() => onSelectBoard(board)}
                         >
-                          {board.name}
+                          <span className="truncate">{board.name}</span>
                         </Button>
                         <Button
                           variant="ghost"
@@ -106,7 +130,7 @@ export const ProjectSelector = ({
                             setEditingName(board.name);
                           }}
                         >
-                          <Pencil className="h-4 w-4" />
+                          <Pencil className="h-3 w-3" />
                         </Button>
                       </>
                     )}
@@ -119,7 +143,7 @@ export const ProjectSelector = ({
                           size="icon"
                           className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-3 w-3" />
                         </Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>
@@ -146,7 +170,18 @@ export const ProjectSelector = ({
             </div>
           </ScrollArea>
         </div>
-      </SheetContent>
-    </Sheet>
+      )}
+
+      {/* Collapsed State - Show only current board indicator */}
+      {isCollapsed && (
+        <div className="p-2">
+          <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center">
+            <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
+              {currentBoard?.name?.charAt(0)?.toUpperCase() || 'B'}
+            </span>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };

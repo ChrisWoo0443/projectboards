@@ -18,7 +18,7 @@
         "readFile": true,
         "writeFile": true,
         "createDir": true,
-        "scope": ["$APPDATA/*", "$APPDATA/boards.json"]
+        "scope": ["$APPDATA/*", "$APPDATA/project-boards/*", "$APPDATA/project-boards/boards.json"]
       },
       "path": {
         "all": true

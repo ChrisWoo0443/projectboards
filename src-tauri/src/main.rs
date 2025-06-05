@@ -11,10 +11,12 @@ async fn save_boards(boards_json: String) -> Result<(), String> {
     let app_dir = tauri::api::path::app_data_dir(&tauri::Config::default())
         .ok_or("Failed to get app directory")?;
     
-    fs::create_dir_all(&app_dir)
+    // Create a custom subfolder
+    let custom_dir = app_dir.join("project-boards");
+    fs::create_dir_all(&custom_dir)
         .map_err(|e| e.to_string())?;
     
-    let data_file = app_dir.join("boards.json");
+    let data_file = custom_dir.join("boards.json");
     fs::write(data_file, boards_json)
         .map_err(|e| e.to_string())?;
     
@@ -26,7 +28,8 @@ async fn load_boards() -> Result<String, String> {
     let app_dir = tauri::api::path::app_data_dir(&tauri::Config::default())
         .ok_or("Failed to get app directory")?;
     
-    let data_file = app_dir.join("boards.json");
+    let custom_dir = app_dir.join("project-boards");
+    let data_file = custom_dir.join("boards.json");
     
     if !data_file.exists() {
         return Ok(String::from("[]"));

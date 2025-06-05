@@ -127,9 +127,10 @@ const Index = () => {
 
   // Columns are now managed within the board state
 
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [preSelectedColumnId, setPreSelectedColumnId] = useState<string | null>(null);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   const deleteBoard = (boardId: string) => {
     if (boards.length <= 1) {
@@ -391,29 +392,34 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
-      <div className="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-b border-slate-200 dark:border-slate-700">
-        <div className="container mx-auto px-6 py-6">
-          <div className="flex items-center space-x-4">
-            <ProjectSelector
-              boards={boards}
-              currentBoard={currentBoard || null}
-              onSelectBoard={(board) => setCurrentBoardId(board.id)}
-              onCreateBoard={createBoard}
-              onDeleteBoard={deleteBoard}
-              onBoardNameChange={(boardId, newName) => {
-                setBoards(prev =>
-                  prev.map(board =>
-                    board.id === boardId
-                      ? { ...board, name: newName }
-                      : board
-                  )
-                );
-                toast({
-                  title: "Board name updated",
-                  description: `Board name has been updated to "${newName}".`
-                });
-              }}
-            />
+      {/* Sidebar */}
+      <ProjectSelector
+        boards={boards}
+        currentBoard={currentBoard || null}
+        onSelectBoard={(board) => setCurrentBoardId(board.id)}
+        onCreateBoard={createBoard}
+        onDeleteBoard={deleteBoard}
+        onBoardNameChange={(boardId, newName) => {
+          setBoards(prev =>
+            prev.map(board =>
+              board.id === boardId
+                ? { ...board, name: newName }
+                : board
+            )
+          );
+          toast({
+            title: "Board name updated",
+            description: `Board name has been updated to "${newName}".`
+          });
+        }}
+        isCollapsed={isSidebarCollapsed}
+        onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+      />
+
+      {/* Main Content */}
+      <div className={`transition-all duration-300 ${isSidebarCollapsed ? 'ml-16' : 'ml-80'}`}>
+        <div className="sticky top-0 z-30 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-b border-slate-200 dark:border-slate-700">
+          <div className="container mx-auto px-6 py-6">
             <Header
               onCreateTask={handleCreateTaskFromHeader}
               searchQuery={searchQuery}
@@ -435,8 +441,7 @@ const Index = () => {
             />
           </div>
         </div>
-      </div>
-      <main className="container mx-auto px-4 py-8">
+        <main className="container mx-auto px-4 py-8">
         <Tabs defaultValue="board" className="w-full">
           <div className="flex items-center justify-between mb-8">
             <TabsList className="grid w-full max-w-md grid-cols-3">
@@ -484,7 +489,8 @@ const Index = () => {
             />
           </TabsContent>
         </Tabs>
-      </main>
+        </main>
+      </div>
 
       <CreateTask
         isOpen={isCreateOpen}
