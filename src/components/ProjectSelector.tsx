@@ -172,14 +172,30 @@ export const ProjectSelector = ({
         </div>
       )}
 
-      {/* Collapsed State - Show only current board indicator */}
+      {/* Collapsed State - Show all boards as clickable indicators */}
       {isCollapsed && (
         <div className="p-2">
-          <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center">
-            <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
-              {currentBoard?.name?.charAt(0)?.toUpperCase() || 'B'}
-            </span>
-          </div>
+          <ScrollArea className="h-[calc(100vh-5rem)]">
+            <div className="space-y-2">
+              {boards.map((board) => (
+                <div
+                  key={board.id}
+                  className={cn(
+                    "w-12 h-12 rounded-lg flex items-center justify-center cursor-pointer transition-all duration-200 hover:scale-105",
+                    currentBoard?.id === board.id
+                      ? "bg-blue-500 text-white shadow-md"
+                      : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"
+                  )}
+                  onClick={() => onSelectBoard(board)}
+                  title={board.name}
+                >
+                  <span className="text-xs font-medium">
+                    {board.name?.charAt(0)?.toUpperCase() || 'B'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
         </div>
       )}
     </div>

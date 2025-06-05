@@ -169,8 +169,13 @@ const Index = () => {
       tasks: [],
     };
 
-    setBoards(prev => [...prev, newBoard]);
-    setCurrentBoardId(newBoard.id);
+    setBoards(prev => {
+      const updatedBoards = [...prev, newBoard];
+      // Set current board ID after boards state is updated
+      setTimeout(() => setCurrentBoardId(newBoard.id), 0);
+      return updatedBoards;
+    });
+    
     toast({
       title: "Board created",
       description: `${newBoard.name} has been created successfully.`,
