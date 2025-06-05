@@ -54,6 +54,18 @@ npm run tauri build
 
 This will create platform-specific installers in the `src-tauri/target/release/bundle` directory.
 
+### Option 2:
+
+1. Install .dmg through the release page of this repo
+2. drag project-boards to applications folder
+3. Run this command with this path or change it to where you choose to put the app
+```
+xattr -cr /Applications/project-boards.app
+```
+4. run the application
+
+
+
 ## Project Structure
 
 ```
