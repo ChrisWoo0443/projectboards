@@ -8,16 +8,17 @@ interface HeaderProps {
     onCreateTask: () => void;
     searchQuery: string;
     onSearchChange: (query: string) => void;
+    currentBoard?: { name: string };
   }
   
-  export const Header = ({ onCreateTask, searchQuery, onSearchChange }: HeaderProps) => {
+  export const Header = ({ onCreateTask, searchQuery, onSearchChange, currentBoard }: HeaderProps) => {
     const { theme, setTheme } = useTheme();
   
     return (
-      <div className="flex-1 flex items-center justify-between">
+      <div className="flex-1 flex items-center justify-between py-2">
         <div className="flex items-center space-x-4">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
-            Project Board
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
+            {currentBoard?.name || "Project Board"}
           </h1>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
