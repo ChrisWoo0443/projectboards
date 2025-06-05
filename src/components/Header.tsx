@@ -3,6 +3,7 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Plus, Search, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
+import { VIEW_TYPES } from "../constants";
 
 interface HeaderProps {
     onCreateTask: () => void;

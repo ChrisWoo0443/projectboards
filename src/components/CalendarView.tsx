@@ -6,6 +6,8 @@ import { Button } from "../components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import { EditTask } from "./EditTask";
+import { getCategoryColor, getPriorityColor } from '../utils/taskUtils';
+import { getTasksDueSoon, getOverdueTasks } from "../utils/taskUtils";
 
 interface CalendarViewProps {
   tasks: Task[];
@@ -21,20 +23,8 @@ export const CalendarView = ({ tasks, onUpdateTask }: CalendarViewProps) => {
     return tasks.filter(task => task.dueDate && isSameDay(task.dueDate, date));
   };
 
-  const getCategoryColor = (category: string) => {
-    // Generate consistent colors for custom categories
-    const colors = [
-      'bg-pink-100 text-pink-800 dark:bg-pink-900/20 dark:text-pink-400',
-      'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
-      'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
-      'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400',
-      'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400',
-      'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/20 dark:text-indigo-400',
-      'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400',
-    ];
-    const hash = category.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
-    return colors[hash % colors.length];
-  };
+  const overdueTasks = getOverdueTasks(tasks);
+  const tasksDueSoon = getTasksDueSoon(tasks);
 
   const handleDragEnd = (result: DropResult) => {
     const { destination, source, draggableId } = result;

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Task } from "../types/kanban";
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
@@ -11,6 +11,8 @@ import {
 } from "../components/ui/dropdown-menu";
 import { format } from "date-fns";
 import { EditTask } from "./EditTask";
+import { getCategoryColor, getPriorityColor } from '../utils/taskUtils';
+import { isTaskOverdue } from "../utils/taskUtils";
 
 interface TaskCardProps {
   task: Task;
@@ -21,27 +23,9 @@ interface TaskCardProps {
 export const TaskCard = ({ task, onUpdate, onDelete }: TaskCardProps) => {
   const [isEditOpen, setIsEditOpen] = useState(false);
 
-  const getCategoryColor = (category: Task['category']) => {
-    const colors = {
-      design: 'bg-pink-100 text-pink-800 dark:bg-pink-900/20 dark:text-pink-400',
-      development: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
-      research: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
-      marketing: 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400',
-      other: 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400',
-    };
-    return colors[category];
-  };
 
-  const getPriorityColor = (priority: Task['priority']) => {
-    const colors = {
-      low: 'bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-300',
-      medium: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
-      high: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400',
-    };
-    return colors[priority];
-  };
 
-  const isOverdue = task.dueDate && new Date() > task.dueDate;
+  const isOverdue = isTaskOverdue(task);
 
   return (
     <>

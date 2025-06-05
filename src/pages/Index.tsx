@@ -1,379 +1,71 @@
-import { useState, useEffect } from "react";
-import { invoke } from "@tauri-apps/api";
+import React, { useState } from "react";
 import { KanbanBoard } from "../components/Board";
 import { CalendarView } from "../components/CalendarView";
 import { ListView } from "../components/ListView";
 import { Header } from "../components/Header";
 import { CreateTask } from "../components/CreateTask";
 import { ColumnManager } from "../components/ColumnManager";
-import { Task, Column } from "../types/kanban";
-import { Board, CreateBoardData } from "../types/board";
 import { ProjectSelector } from "../components/ProjectSelector";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
+import { useBoards } from "../hooks/useBoards";
+import { useTasks } from "../hooks/useTasks";
+import { useColumns } from "../hooks/useColumns";
+import { filterTasksBySearch } from "../utils/taskUtils";
+import { UI_CONFIG, VIEW_TYPES } from "../constants";
 import { useToast } from "../components/ui/use-toast";
 
 const Index = () => {
   const { toast } = useToast();
+  
+  // Custom hooks for state management
+  const {
+    boards,
+    currentBoard,
+    currentBoardId,
+    setCurrentBoardId,
+    createBoard,
+    deleteBoard,
+    updateBoard,
+  } = useBoards();
 
-  const [boards, setBoards] = useState<Board[]>(() => {
-    return [{
-      id: "board-1",
-      name: "My First Board",
-      createdAt: new Date(),
-      columns: [
-        { id: "todo", title: "To Do", taskIds: ["task-1"] },
-        { id: "in-progress", title: "In Progress", taskIds: [] },
-        { id: "review", title: "Review", taskIds: [] },
-        { id: "done", title: "Done", taskIds: [] },
-      ],
-      tasks: [
-        {
-          id: "task-1",
-          title: "Create Your First Task",
-          description: "Press add task to get started",
-          columnId: "todo",
-          category: "General",
-          priority: "high",
-          dueDate: new Date("2025-06-10"),
-          createdAt: new Date(),
-        },
-      ],
-    }];
+  const { addTask, updateTask, deleteTask, moveTask } = useTasks({
+    currentBoard,
+    updateBoard,
   });
 
-  useEffect(() => {
-    // Load boards from file when component mounts
-    const loadBoards = async () => {
-      try {
-        const boardsJson = await invoke('load_boards');
-        const parsed = JSON.parse(boardsJson as string);
-        const processedBoards = parsed.map((board: any) => ({
-          ...board,
-          tasks: board.tasks.map((task: any) => ({
-            ...task,
-            dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
-            createdAt: new Date(task.createdAt),
-          })),
-          createdAt: new Date(board.createdAt),
-        }));
-        
-        setBoards(processedBoards.length > 0 ? processedBoards : [{
-          id: "board-1",
-          name: "My First Board",
-          createdAt: new Date(),
-          columns: [
-            { id: "todo", title: "To Do", taskIds: ["task-1"] },
-            { id: "in-progress", title: "In Progress", taskIds: [] },
-            { id: "review", title: "Review", taskIds: [] },
-            { id: "done", title: "Done", taskIds: [] },
-          ],
-          tasks: [
-            {
-              id: "task-1",
-              title: "Create Your First Task",
-              description: "Press add task to get started",
-              columnId: "todo",
-              category: "General",
-              priority: "high",
-              dueDate: new Date("2025-06-10"),
-              createdAt: new Date(),
-            },
-          ],
-        }]);
-      } catch (error) {
-        console.error('Error loading boards:', error);
-        toast({
-          title: "Error loading boards",
-          description: "Failed to load your boards. Using default board.",
-          variant: "destructive"
-        });
-      }
-    };
+  const { addColumn, updateColumn, moveColumn, deleteColumn } = useColumns({
+    currentBoard,
+    updateBoard,
+  });
 
-    loadBoards();
-  }, []);
-
-  useEffect(() => {
-    // Save boards to file whenever they change
-    const saveBoards = async () => {
-      try {
-        await invoke('save_boards', { boardsJson: JSON.stringify(boards) });
-      } catch (error) {
-        console.error('Error saving boards:', error);
-        toast({
-          title: "Error saving changes",
-          description: "Failed to save your changes.",
-          variant: "destructive"
-        });
-      }
-    };
-
-    if (boards.length > 0) {
-      saveBoards();
-    }
-  }, [boards]);
-
-  const [currentBoardId, setCurrentBoardId] = useState<string>("board-1");
-
-  useEffect(() => {
-    if (boards.length > 0) {
-      setCurrentBoardId(boards[0].id);
-    }
-  }, [boards]);
-
-  const currentBoard = boards.find(board => board.id === currentBoardId);
+  // Local component state
   const tasks = currentBoard?.tasks || [];
   const columns = currentBoard?.columns || [];
-
-  // Columns are now managed within the board state
 
   const [searchQuery, setSearchQuery] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [preSelectedColumnId, setPreSelectedColumnId] = useState<string | null>(null);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(UI_CONFIG.SIDEBAR_COLLAPSED_DEFAULT);
 
-  const deleteBoard = (boardId: string) => {
-    if (boards.length <= 1) {
-      toast({
-        title: "Cannot delete board",
-        description: "You must have at least one board.",
-        variant: "destructive"
-      });
-      return;
-    }
 
-    const remainingBoards = boards.filter(board => board.id !== boardId);
-    setBoards(remainingBoards);
-    
-    if (currentBoardId === boardId) {
-      setCurrentBoardId(remainingBoards[0].id);
-    }
-    
-    toast({
-      title: "Board deleted",
-      description: `The board has been deleted successfully.`,
-    });
-  };
 
-  const createBoard = (data: CreateBoardData) => {
-    const newBoard: Board = {
-      id: `board-${Date.now()}`,
-      name: data.name,
-      createdAt: new Date(),
-      columns: [
-        { id: "todo", title: "To Do", taskIds: [] },
-        { id: "in-progress", title: "In Progress", taskIds: [] },
-        { id: "review", title: "Review", taskIds: [] },
-        { id: "done", title: "Done", taskIds: [] },
-      ],
-      tasks: [],
-    };
 
-    setBoards(prev => {
-      const updatedBoards = [...prev, newBoard];
-      // Set current board ID after boards state is updated
-      setTimeout(() => setCurrentBoardId(newBoard.id), 0);
-      return updatedBoards;
-    });
-    
-    toast({
-      title: "Board created",
-      description: `${newBoard.name} has been created successfully.`,
-    });
-  };
 
-  const addTask = (newTask: Omit<Task, "id" | "createdAt">) => {
-    if (!currentBoard) return;
 
-    const task: Task = {
-      title: newTask.title,
-      description: newTask.description || "",
-      columnId: newTask.columnId,
-      category: newTask.category || "General",
-      priority: newTask.priority || "low",
-      dueDate: newTask.dueDate,
-      id: `task-${Date.now()}`,
-      createdAt: new Date(),
-    };
 
-    setBoards(prev =>
-      prev.map(board =>
-        board.id === currentBoardId
-          ? {
-              ...board,
-              tasks: [...board.tasks, task],
-              columns: board.columns.map(col =>
-                col.id === task.columnId
-                  ? { ...col, taskIds: [...col.taskIds, task.id] }
-                  : col
-              ),
-            }
-          : board
-      )
-    );
-  };
 
-  const updateTask = (taskId: string, updates: Partial<Task>) => {
-    setBoards(prev =>
-      prev.map(board =>
-        board.id === currentBoardId
-          ? {
-              ...board,
-              tasks: board.tasks.map(task =>
-                task.id === taskId ? { ...task, ...updates } : task
-              ),
-            }
-          : board
-      )
-    );
-  };
 
-  const deleteTask = (taskId: string) => {
-    setBoards(prev =>
-      prev.map(board =>
-        board.id === currentBoardId
-          ? {
-              ...board,
-              tasks: board.tasks.filter(task => task.id !== taskId),
-              columns: board.columns.map(col => ({
-                ...col,
-                taskIds: col.taskIds.filter(id => id !== taskId),
-              })),
-            }
-          : board
-      )
-    );
-  };
 
-  const moveTask = (taskId: string, newColumnId: string, newIndex: number) => {
-    if (!currentBoard) return;
 
-    const task = currentBoard.tasks.find(t => t.id === taskId);
-    if (!task) return;
 
-    const oldColumnId = task.columnId;
 
-    setBoards(prev =>
-      prev.map(board =>
-        board.id === currentBoardId
-          ? {
-              ...board,
-              tasks: board.tasks.map(t =>
-                t.id === taskId ? { ...t, columnId: newColumnId } : t
-              ),
-              columns: board.columns.map(col => {
-                if (col.id === oldColumnId) {
-                  return {
-                    ...col,
-                    taskIds: col.taskIds.filter(id => id !== taskId),
-                  };
-                }
-                if (col.id === newColumnId) {
-                  const newTaskIds = [...col.taskIds];
-                  newTaskIds.splice(newIndex, 0, taskId);
-                  return {
-                    ...col,
-                    taskIds: newTaskIds,
-                  };
-                }
-                return col;
-              }),
-            }
-          : board
-      )
-    );
-  };
 
-  const updateColumn = (columnId: string, title: string) => {
-    setBoards(prev =>
-      prev.map(board =>
-        board.id === currentBoardId
-          ? {
-              ...board,
-              columns: board.columns.map(col =>
-                col.id === columnId ? { ...col, title } : col
-              ),
-            }
-          : board
-      )
-    );
-  };
 
-  const addColumn = (title: string) => {
-    if (!currentBoard) return;
-    
-    const newColumn: Column = {
-      id: `column-${Date.now()}`,
-      title,
-      taskIds: []
-    };
 
-    setBoards(prev =>
-      prev.map(board =>
-        board.id === currentBoardId
-          ? {
-              ...board,
-              columns: [...board.columns, newColumn]
-            }
-          : board
-      )
-    );
-  };
 
-  const moveColumn = (columnId: string, newIndex: number) => {
-    if (!currentBoard) return;
 
-    setBoards(prev =>
-      prev.map(board =>
-        board.id === currentBoardId
-          ? {
-              ...board,
-              columns: (() => {
-                const newColumns = [...board.columns];
-                const oldIndex = newColumns.findIndex(col => col.id === columnId);
-                const [movedColumn] = newColumns.splice(oldIndex, 1);
-                newColumns.splice(newIndex, 0, movedColumn);
-                return newColumns;
-              })()
-            }
-          : board
-      )
-    );
-  };
 
-  const deleteColumn = (columnId: string) => {
-    if (!currentBoard) return;
 
-    const tasksToMove = currentBoard.tasks.filter(task => task.columnId === columnId);
-    const firstColumn = currentBoard.columns.find(col => col.id !== columnId);
-
-    if (firstColumn) {
-      setBoards(prev =>
-        prev.map(board =>
-          board.id === currentBoardId
-            ? {
-                ...board,
-                tasks: board.tasks.map(task =>
-                  task.columnId === columnId
-                    ? { ...task, columnId: firstColumn.id }
-                    : task
-                ),
-                columns: board.columns
-                  .filter(col => col.id !== columnId)
-                  .map(col =>
-                    col.id === firstColumn.id
-                      ? {
-                          ...col,
-                          taskIds: [...col.taskIds, ...tasksToMove.map(t => t.id)],
-                        }
-                      : col
-                  ),
-              }
-            : board
-        )
-      );
-    }
-  };
 
   const handleCreateTaskFromColumn = (columnId: string) => {
     setPreSelectedColumnId(columnId);
@@ -390,10 +82,8 @@ const Index = () => {
     setPreSelectedColumnId(null);
   };
 
-  const filteredTasks = tasks.filter(task =>
-    task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    task.description.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Filter tasks based on search query
+  const filteredTasks = filterTasksBySearch(tasks, searchQuery);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
@@ -405,13 +95,7 @@ const Index = () => {
         onCreateBoard={createBoard}
         onDeleteBoard={deleteBoard}
         onBoardNameChange={(boardId, newName) => {
-          setBoards(prev =>
-            prev.map(board =>
-              board.id === boardId
-                ? { ...board, name: newName }
-                : board
-            )
-          );
+          updateBoard(boardId, { name: newName });
           toast({
             title: "Board name updated",
             description: `Board name has been updated to "${newName}".`
@@ -431,13 +115,7 @@ const Index = () => {
               onSearchChange={setSearchQuery}
               currentBoard={currentBoard}
               onBoardNameChange={(newName) => {
-                setBoards(prev =>
-                  prev.map(board =>
-                    board.id === currentBoardId
-                      ? { ...board, name: newName }
-                      : board
-                  )
-                );
+                updateBoard(currentBoardId, { name: newName });
                 toast({
                   title: "Board name updated",
                   description: `Board name has been updated to "${newName}".`
@@ -447,12 +125,12 @@ const Index = () => {
           </div>
         </div>
         <main className="container mx-auto px-4 py-8">
-        <Tabs defaultValue="board" className="w-full">
+        <Tabs defaultValue={VIEW_TYPES.BOARD} className="w-full">
           <div className="flex items-center justify-between mb-8">
             <TabsList className="grid w-full max-w-md grid-cols-3">
-              <TabsTrigger value="board">Board View</TabsTrigger>
-              <TabsTrigger value="calendar">Calendar View</TabsTrigger>
-              <TabsTrigger value="list">List View</TabsTrigger>
+              <TabsTrigger value={VIEW_TYPES.BOARD}>Board View</TabsTrigger>
+              <TabsTrigger value={VIEW_TYPES.CALENDAR}>Calendar View</TabsTrigger>
+              <TabsTrigger value={VIEW_TYPES.LIST}>List View</TabsTrigger>
             </TabsList>
             
             <ColumnManager
@@ -463,7 +141,7 @@ const Index = () => {
             />
           </div>
           
-          <TabsContent value="board">
+          <TabsContent value={VIEW_TYPES.BOARD}>
             {currentBoard && (
               <KanbanBoard
                 tasks={filteredTasks}
@@ -478,14 +156,14 @@ const Index = () => {
             )}
           </TabsContent>
           
-          <TabsContent value="calendar">
+          <TabsContent value={VIEW_TYPES.CALENDAR}>
             <CalendarView 
               tasks={filteredTasks}
               onUpdateTask={updateTask}
             />
           </TabsContent>
           
-          <TabsContent value="list">
+          <TabsContent value={VIEW_TYPES.LIST}>
             <ListView 
               tasks={filteredTasks}
               columns={columns}

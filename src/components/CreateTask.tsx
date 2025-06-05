@@ -1,12 +1,32 @@
-import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../components/ui/dialog";
-import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
-import { Textarea } from "../components/ui/textarea";
-import { Label } from "../components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
-import { CreateTaskData, Column } from "../types/kanban";
+import React, { useState, useEffect } from "react";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Textarea } from "./ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "./ui/dialog";
+import { Calendar } from "./ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "./ui/popover";
+import { CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
 import { cn } from "../lib/utils";
+import { Column, CreateTaskData } from "../types/kanban";
+import { TASK_PRIORITIES_ARRAY, TASK_CATEGORIES, DEFAULT_TASK_VALUES } from "../constants";
+import { Label } from "./ui/label";
 
 interface CreateTaskProps {
   isOpen: boolean;
@@ -17,12 +37,13 @@ interface CreateTaskProps {
 }
 
 export const CreateTask = ({ isOpen, onClose, onCreateTask, columns, preSelectedColumnId }: CreateTaskProps) => {
-  const [formData, setFormData] = useState<CreateTaskData & { dueDate?: Date | string }>({ 
+  const [formData, setFormData] = useState({
     title: "",
-    description: "",
-    columnId: "todo",
-    category: "",
-    priority: "medium",
+    description: DEFAULT_TASK_VALUES.DESCRIPTION as string,
+    columnId: preSelectedColumnId || (columns.length > 0 ? columns[0].id : ""),
+    category: DEFAULT_TASK_VALUES.CATEGORY as string,
+    priority: DEFAULT_TASK_VALUES.PRIORITY as "low" | "medium" | "high",
+    dueDate: undefined as Date | undefined,
   });
 
   // Update columnId when preSelectedColumnId changes
@@ -51,32 +72,34 @@ export const CreateTask = ({ isOpen, onClose, onCreateTask, columns, preSelected
       columnId: preSelectedColumnId || "todo",
       category: "",
       priority: "medium",
+      dueDate: undefined,
     });
     onClose();
+  };
+
+  const resetForm = () => {
+    setFormData({
+      title: "",
+      description: DEFAULT_TASK_VALUES.DESCRIPTION,
+      columnId: preSelectedColumnId || (columns.length > 0 ? columns[0].id : ""),
+      category: DEFAULT_TASK_VALUES.CATEGORY as string,
+      priority: DEFAULT_TASK_VALUES.PRIORITY as "low" | "medium" | "high",
+      dueDate: undefined,
+    });
   };
 
   const handleClose = () => {
-    setFormData({
-      title: "",
-      description: "",
-      columnId: "todo",
-      category: "",
-      priority: "medium",
-    });
+    resetForm();
     onClose();
   };
 
-  const handleDateChange = (value: string) => {
+  const handleDateInputChange = (value: string) => {
     if (!value) {
       setFormData(prev => ({ ...prev, dueDate: undefined }));
       return;
     }
 
-    if (value.length <= 10) { // Only update while typing the date
-      setFormData(prev => ({ ...prev, dueDate: value }));
-    }
-
-    // Try to parse the completed date
+    // Try to parse the date
     if (value.length === 10) {
       const [month, day, year] = value.split('/');
       const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
@@ -138,11 +161,21 @@ export const CreateTask = ({ isOpen, onClose, onCreateTask, columns, preSelected
 
             <div>
               <Label>Category</Label>
-              <Input
+              <Select
                 value={formData.category}
-                onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
-                placeholder="Enter custom category..."
-              />
+                onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {TASK_CATEGORIES.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
@@ -157,9 +190,11 @@ export const CreateTask = ({ isOpen, onClose, onCreateTask, columns, preSelected
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
+                  {TASK_PRIORITIES_ARRAY.map((priority) => (
+                    <SelectItem key={priority.value} value={priority.value}>
+                      {priority.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -168,7 +203,7 @@ export const CreateTask = ({ isOpen, onClose, onCreateTask, columns, preSelected
               <Label>Due Date</Label>
               <Input
                 value={typeof formData.dueDate === 'string' ? formData.dueDate : formData.dueDate ? formData.dueDate.toLocaleDateString('en-US') : ''}
-                onChange={(e) => handleDateChange(e.target.value)}
+                onChange={(e) => handleDateInputChange(e.target.value)}
                 placeholder="MM/DD/YYYY"
               />
             </div>

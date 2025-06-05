@@ -5,6 +5,7 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Plus, Pencil } from "lucide-react";
 import { useState } from "react";
+import { DRAG_TYPES } from "../constants";
 
 interface KanbanBoardProps {
   tasks: Task[];
@@ -45,7 +46,7 @@ export const KanbanBoard = ({
       return;
     }
 
-    if (type === 'column') {
+    if (type === DRAG_TYPES.COLUMN) {
       // Ensure destination index is within valid range
       const maxIndex = columns.length - 1;
       const validIndex = Math.min(Math.max(0, destination.index), maxIndex);
@@ -53,7 +54,7 @@ export const KanbanBoard = ({
       return;
     }
 
-    if (type === 'task') {
+    if (type === DRAG_TYPES.TASK) {
       onMoveTask(draggableId, destination.droppableId, destination.index);
       return;
     }
@@ -71,7 +72,7 @@ export const KanbanBoard = ({
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
       <div className="overflow-x-auto pb-4">
-        <Droppable droppableId="board" direction="horizontal" type="column">
+        <Droppable droppableId="board" direction="horizontal" type={DRAG_TYPES.COLUMN}>
           {(provided, snapshot) => (
             <div 
               ref={provided.innerRef}
@@ -163,7 +164,7 @@ export const KanbanBoard = ({
                     </Button>
                   </div>
                   
-                  <Droppable droppableId={column.id} type="task">
+                  <Droppable droppableId={column.id} type={DRAG_TYPES.TASK}>
                     {(provided, snapshot) => (
                       <div
                         ref={provided.innerRef}

@@ -8,6 +8,8 @@ import { Badge } from "../components/ui/badge";
 import { format } from "date-fns";
 import { SortOption, FilterOption } from "../types/kanban";
 import { ArrowUpDown, Filter, Edit2, Check, X } from "lucide-react";
+import { getCategoryColor, getPriorityColor } from "../utils/taskUtils";
+import { sortTasks } from "../utils/taskUtils";
 
 interface ListViewProps {
   tasks: Task[];
@@ -40,32 +42,7 @@ export const ListView = ({ tasks, columns, onUpdateTask, onDeleteTask }: ListVie
     return task.category === filterBy;
   });
 
-  const sortedTasks = [...filteredTasks].sort((a, b) => {
-    let comparison = 0;
-    
-    switch (sortBy) {
-      case 'dueDate':
-        const aDate = a.dueDate || new Date(0);
-        const bDate = b.dueDate || new Date(0);
-        comparison = aDate.getTime() - bDate.getTime();
-        break;
-      case 'priority':
-        const priorityOrder = { 'high': 3, 'medium': 2, 'low': 1 };
-        comparison = priorityOrder[a.priority] - priorityOrder[b.priority];
-        break;
-      case 'category':
-        comparison = a.category.localeCompare(b.category);
-        break;
-      case 'title':
-        comparison = a.title.localeCompare(b.title);
-        break;
-      case 'createdAt':
-        comparison = a.createdAt.getTime() - b.createdAt.getTime();
-        break;
-    }
-    
-    return sortOrder === 'asc' ? comparison : -comparison;
-  });
+  const sortedTasks = sortTasks(filteredTasks, sortBy, sortOrder);
 
   const toggleSortOrder = () => {
     setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
@@ -93,29 +70,7 @@ export const ListView = ({ tasks, columns, onUpdateTask, onDeleteTask }: ListVie
     setEditDescription("");
   };
 
-  const getPriorityColor = (priority: Task['priority']) => {
-    const colors = {
-      low: 'bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-300',
-      medium: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
-      high: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400',
-    };
-    return colors[priority];
-  };
 
-  const getCategoryColor = (category: string) => {
-    // Generate consistent colors for custom categories
-    const colors = [
-      'bg-pink-100 text-pink-800 dark:bg-pink-900/20 dark:text-pink-400',
-      'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
-      'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
-      'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400',
-      'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400',
-      'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/20 dark:text-indigo-400',
-      'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400',
-    ];
-    const hash = category.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
-    return colors[hash % colors.length];
-  };
 
   const getColumnTitle = (columnId: string) => {
     const column = columns.find(col => col.id === columnId);
