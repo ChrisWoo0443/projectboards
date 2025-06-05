@@ -364,6 +364,19 @@ const Index = () => {
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
               currentBoard={currentBoard}
+              onBoardNameChange={(newName) => {
+                setBoards(prev =>
+                  prev.map(board =>
+                    board.id === currentBoardId
+                      ? { ...board, name: newName }
+                      : board
+                  )
+                );
+                toast({
+                  title: "Board name updated",
+                  description: `Board name has been updated to "${newName}".`
+                });
+              }}
             />
           </div>
         </div>
