@@ -42,7 +42,7 @@ export const ProjectSelector = ({
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
         <Button variant="ghost" size="icon" className="h-9 w-9">
-          <Menu className="h-5 w-5" />
+          <Menu width={18} height={18} className="scale-[2.0]" strokeWidth={1.25} /> 
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="w-80">

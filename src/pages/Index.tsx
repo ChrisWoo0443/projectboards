@@ -16,8 +16,29 @@ const Index = () => {
   const { toast } = useToast();
 
   const [boards, setBoards] = useState<Board[]>(() => {
-    // Initialize with empty array, data will be loaded in useEffect
-    return [];
+    return [{
+      id: "board-1",
+      name: "My First Board",
+      createdAt: new Date(),
+      columns: [
+        { id: "todo", title: "To Do", taskIds: ["task-1"] },
+        { id: "in-progress", title: "In Progress", taskIds: [] },
+        { id: "review", title: "Review", taskIds: [] },
+        { id: "done", title: "Done", taskIds: [] },
+      ],
+      tasks: [
+        {
+          id: "task-1",
+          title: "Create Your First Task",
+          description: "Press add task to get started",
+          columnId: "todo",
+          category: "General",
+          priority: "high",
+          dueDate: new Date("2025-06-10"),
+          createdAt: new Date(),
+        },
+      ],
+    }];
   });
 
   useEffect(() => {
@@ -92,10 +113,10 @@ const Index = () => {
     }
   }, [boards]);
 
-  const [currentBoardId, setCurrentBoardId] = useState<string>("");
+  const [currentBoardId, setCurrentBoardId] = useState<string>("board-1");
 
   useEffect(() => {
-    if (boards.length > 0 && !currentBoardId) {
+    if (boards.length > 0) {
       setCurrentBoardId(boards[0].id);
     }
   }, [boards]);
@@ -293,6 +314,27 @@ const Index = () => {
     );
   };
 
+  const moveColumn = (columnId: string, newIndex: number) => {
+    if (!currentBoard) return;
+
+    setBoards(prev =>
+      prev.map(board =>
+        board.id === currentBoardId
+          ? {
+              ...board,
+              columns: (() => {
+                const newColumns = [...board.columns];
+                const oldIndex = newColumns.findIndex(col => col.id === columnId);
+                const [movedColumn] = newColumns.splice(oldIndex, 1);
+                newColumns.splice(newIndex, 0, movedColumn);
+                return newColumns;
+              })()
+            }
+          : board
+      )
+    );
+  };
+
   const deleteColumn = (columnId: string) => {
     if (!currentBoard) return;
 
@@ -412,15 +454,18 @@ const Index = () => {
           </div>
           
           <TabsContent value="board">
-            <KanbanBoard 
-              tasks={filteredTasks}
-              columns={columns}
-              onMoveTask={moveTask}
-              onUpdateTask={updateTask}
-              onDeleteTask={deleteTask}
-              onCreateTask={handleCreateTaskFromColumn}
-              onUpdateColumn={updateColumn}
-            />
+            {currentBoard && (
+              <KanbanBoard
+                tasks={currentBoard.tasks}
+                columns={currentBoard.columns}
+                onMoveTask={moveTask}
+                onUpdateTask={updateTask}
+                onDeleteTask={deleteTask}
+                onCreateTask={handleCreateTaskFromColumn}
+                onUpdateColumn={updateColumn}
+                onMoveColumn={moveColumn}
+              />
+            )}
           </TabsContent>
           
           <TabsContent value="calendar">
