@@ -39,6 +39,7 @@ export const DEFAULT_TASK_VALUES = {
   CATEGORY: 'General',
   PRIORITY: TASK_PRIORITIES.LOW,
   DESCRIPTION: '',
+  COMPLETED: false,
 } as const;
 
 // Drag and drop types

@@ -31,9 +31,35 @@ export const TaskCard = ({ task, onUpdate, onDelete }: TaskCardProps) => {
     <>
       <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-4 shadow-sm hover:shadow-md transition-all duration-200 group">
         <div className="flex items-start justify-between mb-3">
-          <h4 className="font-medium text-slate-900 dark:text-slate-100 text-sm leading-tight">
-            {task.title}
-          </h4>
+          <div className="flex items-center gap-2 flex-1">
+            <button
+              onClick={() => onUpdate({ completed: !task.completed })}
+              className="flex-shrink-0 w-6 h-6 rounded-full border-2 border-slate-300 dark:border-slate-600 hover:border-slate-400 dark:hover:border-slate-500 transition-colors flex items-center justify-center"
+              style={{
+                backgroundColor: task.completed ? '#10b981' : 'transparent',
+                borderColor: task.completed ? '#10b981' : undefined
+              }}
+            >
+              {task.completed && (
+                <svg
+                  className="w-3.5 h-3.5 text-white"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              )}
+            </button>
+            <h4 className={`font-medium text-slate-900 dark:text-slate-100 text-sm leading-tight flex-1 ${
+              task.completed ? 'line-through text-slate-500 dark:text-slate-400' : ''
+            }`}>
+              {task.title}
+            </h4>
+          </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button 

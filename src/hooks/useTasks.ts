@@ -16,6 +16,7 @@ export const useTasks = ({ currentBoard, updateBoard }: UseTasksProps) => {
       description: newTask.description || DEFAULT_TASK_VALUES.DESCRIPTION,
       category: newTask.category || DEFAULT_TASK_VALUES.CATEGORY,
       priority: newTask.priority || DEFAULT_TASK_VALUES.PRIORITY,
+      completed: newTask.completed ?? DEFAULT_TASK_VALUES.COMPLETED,
       id: `task-${Date.now()}`,
       createdAt: new Date(),
     };

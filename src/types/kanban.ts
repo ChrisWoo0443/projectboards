@@ -7,6 +7,7 @@ export interface Task {
     priority: 'low' | 'medium' | 'high';
     dueDate?: Date | string;
     createdAt: Date;
+    completed?: boolean;
   }
   
   export interface Column {

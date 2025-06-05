@@ -63,6 +63,7 @@ export const CreateTask = ({ isOpen, onClose, onCreateTask, columns, preSelected
       category: formData.category.trim() || "General",
       priority: formData.priority || "medium",
       columnId: formData.columnId || preSelectedColumnId || "todo",
+      completed: DEFAULT_TASK_VALUES.COMPLETED,
     };
     
     onCreateTask(taskData);
