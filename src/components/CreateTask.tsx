@@ -46,6 +46,8 @@ export const CreateTask = ({ isOpen, onClose, onCreateTask, columns, preSelected
     dueDate: undefined as Date | undefined,
   });
 
+  const [dateError, setDateError] = useState<string>("");
+
   // Update columnId when preSelectedColumnId changes
   useEffect(() => {
     if (preSelectedColumnId) {
@@ -56,6 +58,16 @@ export const CreateTask = ({ isOpen, onClose, onCreateTask, columns, preSelected
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title.trim()) return;
+    
+    // Validate date if provided
+    if (formData.dueDate && typeof formData.dueDate === 'string') {
+      setDateError("Please enter a complete and valid date");
+      return;
+    }
+    
+    if (dateError) {
+      return; // Don't submit if there's a date error
+    }
     
     const taskData = {
       ...formData,
@@ -75,6 +87,7 @@ export const CreateTask = ({ isOpen, onClose, onCreateTask, columns, preSelected
       priority: "medium",
       dueDate: undefined,
     });
+    setDateError("");
     onClose();
   };
 
@@ -87,6 +100,7 @@ export const CreateTask = ({ isOpen, onClose, onCreateTask, columns, preSelected
       priority: DEFAULT_TASK_VALUES.PRIORITY as "low" | "medium" | "high",
       dueDate: undefined,
     });
+    setDateError("");
   };
 
   const handleClose = () => {
@@ -97,16 +111,69 @@ export const CreateTask = ({ isOpen, onClose, onCreateTask, columns, preSelected
   const handleDateInputChange = (value: string) => {
     if (!value) {
       setFormData(prev => ({ ...prev, dueDate: undefined }));
+      setDateError("");
       return;
     }
 
-    // Try to parse the date
-    if (value.length === 10) {
-      const [month, day, year] = value.split('/');
-      const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-      if (!isNaN(date.getTime())) {
+    const dateParts = value.split("/");
+    
+    // Allow incomplete date input
+    if (dateParts.length <= 3 && value.length <= 10) {
+      // Keep the raw input value while typing
+      setFormData(prev => ({ ...prev, dueDate: value as any }));
+      
+      // Only validate when input is complete
+      if (dateParts.length === 3 && value.length === 10) {
+        const month = parseInt(dateParts[0]);
+        const day = parseInt(dateParts[1]);
+        const year = parseInt(dateParts[2]);
+        
+        // Validate date components
+        if (isNaN(month) || isNaN(day) || isNaN(year)) {
+          setDateError("Please enter a valid date in MM/DD/YYYY format");
+          return;
+        }
+        
+        if (month < 1 || month > 12) {
+          setDateError("Month must be between 01 and 12");
+          return;
+        }
+        
+        if (day < 1 || day > 31) {
+          setDateError("Day must be between 01 and 31");
+          return;
+        }
+        
+        if (year < 1900 || year > 2100) {
+          setDateError("Year must be between 1900 and 2100");
+          return;
+        }
+        
+        const date = new Date(year, month - 1, day);
+        
+        // Check if the date is valid (handles cases like Feb 30)
+        if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
+          setDateError("Please enter a valid date (e.g., February 30th doesn't exist)");
+          return;
+        }
+        
+        // Check if date is in the past
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (date < today) {
+          setDateError("Due date cannot be in the past");
+          return;
+        }
+        
+        // If all validations pass
+        setDateError("");
         setFormData(prev => ({ ...prev, dueDate: date }));
+      } else {
+        // Clear error while typing incomplete date
+        setDateError("");
       }
+    } else {
+      setDateError("Please enter date in MM/DD/YYYY format");
     }
   };
 
@@ -201,12 +268,17 @@ export const CreateTask = ({ isOpen, onClose, onCreateTask, columns, preSelected
             </div>
 
             <div>
-              <Label>Due Date</Label>
+              <Label htmlFor="dueDate">Due Date (MM/DD/YYYY)</Label>
               <Input
-                value={typeof formData.dueDate === 'string' ? formData.dueDate : formData.dueDate ? formData.dueDate.toLocaleDateString('en-US') : ''}
+                id="dueDate"
+                value={typeof formData.dueDate === 'string' ? formData.dueDate : formData.dueDate ? format(formData.dueDate as Date, "MM/dd/yyyy") : ""}
                 onChange={(e) => handleDateInputChange(e.target.value)}
                 placeholder="MM/DD/YYYY"
+                className={dateError ? "border-red-500" : ""}
               />
+              {dateError && (
+                <p className="text-sm text-red-500 mt-1">{dateError}</p>
+              )}
             </div>
           </div>
 
