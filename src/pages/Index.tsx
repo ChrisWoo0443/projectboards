@@ -47,26 +47,6 @@ const Index = () => {
   const [preSelectedColumnId, setPreSelectedColumnId] = useState<string | null>(null);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(UI_CONFIG.SIDEBAR_COLLAPSED_DEFAULT);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   const handleCreateTaskFromColumn = (columnId: string) => {
     setPreSelectedColumnId(columnId);
     setIsCreateOpen(true);

@@ -23,8 +23,6 @@ interface TaskCardProps {
 export const TaskCard = ({ task, onUpdate, onDelete }: TaskCardProps) => {
   const [isEditOpen, setIsEditOpen] = useState(false);
 
-
-
   const isOverdue = isTaskOverdue(task);
 
   return (

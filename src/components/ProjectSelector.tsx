@@ -8,7 +8,6 @@ import { Separator } from "./ui/separator";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "./ui/alert-dialog";
 import { cn } from "../lib/utils";
 
-
 interface ProjectSelectorProps {
   boards: Board[];
   currentBoard: Board | null;

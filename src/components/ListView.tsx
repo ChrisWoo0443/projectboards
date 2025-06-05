@@ -70,8 +70,6 @@ export const ListView = ({ tasks, columns, onUpdateTask, onDeleteTask }: ListVie
     setEditDescription("");
   };
 
-
-
   const getColumnTitle = (columnId: string) => {
     const column = columns.find(col => col.id === columnId);
     return column?.title || 'Unknown';

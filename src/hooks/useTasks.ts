@@ -84,10 +84,8 @@ export const useTasks = ({ currentBoard, updateBoard }: UseTasksProps) => {
           newTaskIds.splice(newIndex, 0, taskId);
           return { ...col, taskIds: newTaskIds };
         } else if (col.id === oldColumnId) {
-          // Remove from old column
           return { ...col, taskIds: col.taskIds.filter(id => id !== taskId) };
         } else if (col.id === newColumnId) {
-          // Add to new column
           const newTaskIds = [...col.taskIds];
           newTaskIds.splice(newIndex, 0, taskId);
           return { ...col, taskIds: newTaskIds };
