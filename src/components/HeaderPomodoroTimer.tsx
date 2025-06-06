@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Play, Pause, Square, Settings, Timer, Coffee, ChevronDown } from 'lucide-react';
+import { Play, Pause, Square, Settings, Timer, Coffee, ChevronDown, RotateCcw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 type TimerState = 'idle' | 'running' | 'paused';
@@ -140,6 +140,11 @@ export const HeaderPomodoroTimer: React.FC = () => {
     setTimerState('idle');
     setSessionType('work');
     setTimeLeft(settings.workDuration * 60);
+  };
+
+  const resetTimer = () => {
+    setTimerState('idle');
+    setTimeLeft(sessionType === 'work' ? settings.workDuration * 60 : settings.breakDuration * 60);
   };
 
   const updateSettings = (newSettings: PomodoroSettings) => {
@@ -278,10 +283,16 @@ export const HeaderPomodoroTimer: React.FC = () => {
             
             <div className="flex justify-center gap-2">
               {timerState === 'idle' && (
-                <Button onClick={startTimer} size="sm" className="flex items-center gap-1">
-                  <Play className="h-3 w-3" />
-                  Start
-                </Button>
+                <>
+                  <Button onClick={startTimer} size="sm" className="flex items-center gap-1">
+                    <Play className="h-3 w-3" />
+                    Start
+                  </Button>
+                  <Button onClick={resetTimer} variant="outline" size="sm" className="flex items-center gap-1">
+                    <RotateCcw className="h-3 w-3" />
+                    Reset
+                  </Button>
+                </>
               )}
               
               {timerState === 'running' && (
@@ -293,6 +304,10 @@ export const HeaderPomodoroTimer: React.FC = () => {
                   <Button onClick={stopTimer} variant="destructive" size="sm" className="flex items-center gap-1">
                     <Square className="h-3 w-3" />
                     Stop
+                  </Button>
+                  <Button onClick={resetTimer} variant="outline" size="sm" className="flex items-center gap-1">
+                    <RotateCcw className="h-3 w-3" />
+                    Reset
                   </Button>
                 </>
               )}
@@ -306,6 +321,10 @@ export const HeaderPomodoroTimer: React.FC = () => {
                   <Button onClick={stopTimer} variant="outline" size="sm" className="flex items-center gap-1">
                     <Square className="h-3 w-3" />
                     Stop
+                  </Button>
+                  <Button onClick={resetTimer} variant="outline" size="sm" className="flex items-center gap-1">
+                    <RotateCcw className="h-3 w-3" />
+                    Reset
                   </Button>
                 </>
               )}
