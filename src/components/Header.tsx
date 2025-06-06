@@ -1,9 +1,10 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Plus, Search, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { VIEW_TYPES } from "../constants";
+import { HeaderPomodoroTimer } from "./HeaderPomodoroTimer";
 
 interface HeaderProps {
     onCreateTask: () => void;
@@ -74,6 +75,7 @@ interface HeaderProps {
             <Plus className="h-4 w-4 mr-2" />
             Add Task
           </Button>
+          <HeaderPomodoroTimer />
           <Button
             variant="ghost"
             size="icon"

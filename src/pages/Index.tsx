@@ -8,6 +8,7 @@ import { ColumnManager } from "../components/ColumnManager";
 import { ProjectSelector } from "../components/ProjectSelector";
 import { GamificationWidget } from "../components/GamificationWidget";
 import { GamificationNotifications } from "../components/GamificationNotifications";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { useBoards } from "../hooks/useBoards";
 import { useTasks } from "../hooks/useTasks";
@@ -160,11 +161,11 @@ const Index = () => {
         <Tabs defaultValue={VIEW_TYPES.BOARD} className="w-full">
           <div className="flex items-center justify-between mb-8">
             <TabsList className="grid w-full max-w-lg grid-cols-4">
-              <TabsTrigger value={VIEW_TYPES.BOARD}>Board View</TabsTrigger>
-              <TabsTrigger value={VIEW_TYPES.CALENDAR}>Calendar View</TabsTrigger>
-              <TabsTrigger value={VIEW_TYPES.LIST}>List View</TabsTrigger>
-              <TabsTrigger value="gamification">Progress</TabsTrigger>
-            </TabsList>
+               <TabsTrigger value={VIEW_TYPES.BOARD}>Board View</TabsTrigger>
+               <TabsTrigger value={VIEW_TYPES.CALENDAR}>Calendar View</TabsTrigger>
+               <TabsTrigger value={VIEW_TYPES.LIST}>List View</TabsTrigger>
+               <TabsTrigger value="gamification">Progress</TabsTrigger>
+             </TabsList>
             
             <ColumnManager
               columns={columns}
@@ -205,15 +206,17 @@ const Index = () => {
             />
           </TabsContent>
           
-          <TabsContent value="gamification">
-            <GamificationWidget
-              userStats={userStats}
-              dailyChallenge={dailyChallenge}
-              pointsHistory={pointsHistory}
-              onUpdateWeeklyGoal={updateWeeklyGoal}
-              onResetData={resetGamification}
-            />
-          </TabsContent>
+          <TabsContent value="gamification" className="mt-6">
+              <GamificationWidget
+                userStats={userStats}
+                dailyChallenge={dailyChallenge}
+                pointsHistory={pointsHistory}
+                onUpdateWeeklyGoal={updateWeeklyGoal}
+                onResetData={resetGamification}
+              />
+            </TabsContent>
+
+
         </Tabs>
         </main>
       </div>
