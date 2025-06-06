@@ -6,6 +6,7 @@ import { Progress } from './ui/progress';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import { UserStats, DailyChallenge } from '../types/gamification';
 import { LEVELS } from '../constants/gamification';
+import { getCurrentLevel, getNextLevel } from '../utils/gamificationUtils';
 import { GamificationDashboard } from './GamificationDashboard';
 import { Trophy, Flame, Target, Star, TrendingUp, Calendar } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -29,8 +30,8 @@ export const GamificationWidget: React.FC<GamificationWidgetProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   
-  const currentLevel = LEVELS.find(level => level.level === userStats.level) || LEVELS[0];
-  const nextLevel = LEVELS.find(level => level.level === userStats.level + 1);
+  const currentLevel = getCurrentLevel(userStats);
+  const nextLevel = getNextLevel(userStats);
   
   const progressPercentage = nextLevel 
     ? (userStats.currentLevelProgress / (nextLevel.minPoints - currentLevel.minPoints)) * 100
@@ -209,7 +210,7 @@ export const GamificationMiniWidget: React.FC<{
   userStats: UserStats;
   onClick: () => void;
 }> = ({ userStats, onClick }) => {
-  const currentLevel = LEVELS.find(level => level.level === userStats.level) || LEVELS[0];
+  const currentLevel = getCurrentLevel(userStats);
   
   return (
     <Button

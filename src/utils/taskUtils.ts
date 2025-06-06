@@ -104,31 +104,5 @@ export const generateColumnId = (): string => {
   return `column-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 };
 
-/**
- * Get category color based on category name
- */
-export const getCategoryColor = (category: string): string => {
-  const colors: Record<string, string> = {
-    'General': 'bg-gray-100 text-gray-800',
-    'Work': 'bg-blue-100 text-blue-800',
-    'Personal': 'bg-green-100 text-green-800',
-    'Shopping': 'bg-yellow-100 text-yellow-800',
-    'Health': 'bg-red-100 text-red-800',
-    'Finance': 'bg-purple-100 text-purple-800',
-    'Education': 'bg-indigo-100 text-indigo-800',
-    'Travel': 'bg-pink-100 text-pink-800',
-  };
-  return colors[category] || 'bg-gray-100 text-gray-800';
-};
-
-/**
- * Get priority color based on priority level
- */
-export const getPriorityColor = (priority: 'low' | 'medium' | 'high'): string => {
-  const colors = {
-    low: 'bg-green-100 text-green-800',
-    medium: 'bg-yellow-100 text-yellow-800',
-    high: 'bg-red-100 text-red-800',
-  };
-  return colors[priority];
-};
+// Re-export color utilities for backward compatibility
+export { getTaskCategoryColor as getCategoryColor, getPriorityColor } from './colorUtils';

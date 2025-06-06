@@ -1,10 +1,12 @@
-import React, { useEffect } from 'react';
-import { Achievement } from '../types/gamification';
-import { LEVELS } from '../constants/gamification';
-import { Card, CardContent } from './ui/card';
-import { Badge } from './ui/badge';
-import { Trophy, Star, Sparkles } from 'lucide-react';
-import { cn } from '../lib/utils';
+import React, { useEffect, useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { X, Trophy, Star, Target, Zap } from 'lucide-react';
+import { Achievement } from '@/types/gamification';
+import { LEVELS } from '@/constants/gamification';
+import { getAchievementCategoryColor } from '@/utils/colorUtils';
+import { cn } from '@/lib/utils';
 
 interface LevelUpNotificationProps {
   level: number;
@@ -40,7 +42,7 @@ export const LevelUpNotification: React.FC<LevelUpNotificationProps> = ({
             </div>
             <div className="flex-1">
               <div className="flex items-center space-x-2">
-                <Sparkles className="h-4 w-4" />
+                <Star className="h-4 w-4" />
                 <span className="text-sm font-medium uppercase tracking-wide">Level Up!</span>
               </div>
               <h3 className="text-lg font-bold mt-1">
@@ -77,26 +79,13 @@ export const AchievementNotification: React.FC<AchievementNotificationProps> = (
 
   if (!show || !achievement) return null;
 
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case 'productivity':
-        return 'from-blue-500 to-blue-600';
-      case 'consistency':
-        return 'from-green-500 to-green-600';
-      case 'milestone':
-        return 'from-purple-500 to-purple-600';
-      case 'special':
-        return 'from-pink-500 to-pink-600';
-      default:
-        return 'from-gray-500 to-gray-600';
-    }
-  };
+
 
   return (
     <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-right-full duration-500">
       <Card className={cn(
         "w-80 text-white border-0 shadow-lg bg-gradient-to-r",
-        getCategoryColor(achievement.category)
+        getAchievementCategoryColor(achievement.category)
       )}>
         <CardContent className="p-6">
           <div className="flex items-center space-x-3">

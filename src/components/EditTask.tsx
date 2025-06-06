@@ -27,6 +27,7 @@ import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "../lib/utils";
 import { TASK_PRIORITIES_ARRAY, TASK_CATEGORIES } from "../constants";
+import { parseDateString, formatDateToString } from '../utils/dateUtils';
 
 interface EditTaskProps {
   task: Task;
@@ -136,25 +137,20 @@ export const EditTask = ({ task, isOpen, onClose, onUpdateTask }: EditTaskProps)
             <Label htmlFor="dueDate">Due Date (MM/DD/YYYY)</Label>
             <Input
               id="dueDate"
-              value={typeof formData.dueDate === 'string' ? formData.dueDate : formData.dueDate ? format(formData.dueDate as Date, "MM/dd/yyyy") : ""}
+              value={typeof formData.dueDate === 'string' ? formData.dueDate : formData.dueDate ? formatDateToString(formData.dueDate as Date) : ""}
               onChange={(e) => {
                 const dateStr = e.target.value;
-                const dateParts = dateStr.split("/");
                 
-                // Allow incomplete date input
-                if (dateParts.length <= 3 && dateStr.length <= 10) {
+                if (dateStr.length <= 10) {
                   // Keep the raw input value while typing
                   setFormData(prev => ({ ...prev, dueDate: dateStr }));
                   
                   // Only parse and set Date object when input is complete
-                  if (dateParts.length === 3 && dateStr.length === 10) {
-                    const month = parseInt(dateParts[0]) - 1;
-                    const day = parseInt(dateParts[1]);
-                    const year = parseInt(dateParts[2]);
-                    const date = new Date(year, month, day);
+                  if (dateStr.length === 10) {
+                    const parseResult = parseDateString(dateStr);
                     
-                    if (!isNaN(date.getTime())) {
-                      setFormData(prev => ({ ...prev, dueDate: date }));
+                    if (parseResult.isValid && parseResult.date) {
+                      setFormData(prev => ({ ...prev, dueDate: parseResult.date! }));
                     }
                   }
                 }

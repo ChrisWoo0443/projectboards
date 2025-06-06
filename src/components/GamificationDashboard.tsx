@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { ScrollArea } from './ui/scroll-area';
 import { UserStats, Achievement, PointsTransaction, DailyChallenge } from '../types/gamification';
 import { LEVELS } from '../constants/gamification';
+import { getCurrentLevel, getNextLevel } from '../utils/gamificationUtils';
 import { Trophy, Target, Flame, Calendar, Star, Award, TrendingUp, Zap } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -25,8 +26,8 @@ export const GamificationDashboard: React.FC<GamificationDashboardProps> = ({
   onUpdateWeeklyGoal,
   onResetData,
 }) => {
-  const currentLevel = LEVELS.find(level => level.level === userStats.level) || LEVELS[0];
-  const nextLevel = LEVELS.find(level => level.level === userStats.level + 1);
+  const currentLevel = getCurrentLevel(userStats);
+  const nextLevel = getNextLevel(userStats);
   
   const unlockedAchievements = userStats.achievements.filter(a => a.isUnlocked);
   const lockedAchievements = userStats.achievements.filter(a => !a.isUnlocked);

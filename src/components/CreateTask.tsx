@@ -27,6 +27,7 @@ import { cn } from "../lib/utils";
 import { Column, CreateTaskData } from "../types/kanban";
 import { TASK_PRIORITIES_ARRAY, TASK_CATEGORIES, DEFAULT_TASK_VALUES } from "../constants";
 import { Label } from "./ui/label";
+import { parseDateString, formatDateToString } from '../utils/dateUtils';
 
 interface CreateTaskProps {
   isOpen: boolean;
@@ -117,63 +118,25 @@ export const CreateTask = ({ isOpen, onClose, onCreateTask, columns, preSelected
 
     const dateParts = value.split("/");
     
-    // Allow incomplete date input
-    if (dateParts.length <= 3 && value.length <= 10) {
+    if (value.length <= 10) {
       // Keep the raw input value while typing
       setFormData(prev => ({ ...prev, dueDate: value as any }));
       
       // Only validate when input is complete
-      if (dateParts.length === 3 && value.length === 10) {
-        const month = parseInt(dateParts[0]);
-        const day = parseInt(dateParts[1]);
-        const year = parseInt(dateParts[2]);
+      if (value.length === 10) {
+        const parseResult = parseDateString(value);
         
-        // Validate date components
-        if (isNaN(month) || isNaN(day) || isNaN(year)) {
-          setDateError("Please enter a valid date in MM/DD/YYYY format");
-          return;
+        if (parseResult.isValid && parseResult.date) {
+          // Clear any previous errors and set the valid date
+          setDateError("");
+          setFormData(prev => ({ ...prev, dueDate: parseResult.date! }));
+        } else {
+          setDateError(parseResult.error || "Please enter a valid date");
         }
-        
-        if (month < 1 || month > 12) {
-          setDateError("Month must be between 01 and 12");
-          return;
-        }
-        
-        if (day < 1 || day > 31) {
-          setDateError("Day must be between 01 and 31");
-          return;
-        }
-        
-        if (year < 1900 || year > 2100) {
-          setDateError("Year must be between 1900 and 2100");
-          return;
-        }
-        
-        const date = new Date(year, month - 1, day);
-        
-        // Check if the date is valid (handles cases like Feb 30)
-        if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
-          setDateError("Please enter a valid date (e.g., February 30th doesn't exist)");
-          return;
-        }
-        
-        // Check if date is in the past
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        if (date < today) {
-          setDateError("Due date cannot be in the past");
-          return;
-        }
-        
-        // If all validations pass
-        setDateError("");
-        setFormData(prev => ({ ...prev, dueDate: date }));
       } else {
-        // Clear error while typing incomplete date
+        // Clear errors while typing incomplete date
         setDateError("");
       }
-    } else {
-      setDateError("Please enter date in MM/DD/YYYY format");
     }
   };
 
@@ -271,7 +234,7 @@ export const CreateTask = ({ isOpen, onClose, onCreateTask, columns, preSelected
               <Label htmlFor="dueDate">Due Date (MM/DD/YYYY)</Label>
               <Input
                 id="dueDate"
-                value={typeof formData.dueDate === 'string' ? formData.dueDate : formData.dueDate ? format(formData.dueDate as Date, "MM/dd/yyyy") : ""}
+                value={typeof formData.dueDate === 'string' ? formData.dueDate : formData.dueDate ? formatDateToString(formData.dueDate as Date) : ""}
                 onChange={(e) => handleDateInputChange(e.target.value)}
                 placeholder="MM/DD/YYYY"
                 className={dateError ? "border-red-500" : ""}

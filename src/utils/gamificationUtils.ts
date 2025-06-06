@@ -1,6 +1,6 @@
 import { Task } from '../types/kanban';
-import { UserStats, Achievement, PointsTransaction, DailyChallenge } from '../types/gamification';
-import { POINTS, ACHIEVEMENTS, calculateLevel, getPointsToNextLevel, DAILY_CHALLENGE_TYPES, DEFAULT_WEEKLY_GOAL } from '../constants/gamification';
+import { UserStats, Achievement, PointsTransaction, DailyChallenge, LevelInfo } from '../types/gamification';
+import { POINTS, ACHIEVEMENTS, calculateLevel, getPointsToNextLevel, DAILY_CHALLENGE_TYPES, DEFAULT_WEEKLY_GOAL, LEVELS } from '../constants/gamification';
 import { format, isToday, differenceInDays, startOfWeek, endOfWeek, isWithinInterval } from 'date-fns';
 
 /**
@@ -247,6 +247,14 @@ export const calculateWeeklyProgress = (tasks: Task[], weeklyGoal: number = DEFA
 /**
  * Generate daily challenge
  */
+export const getCurrentLevel = (userStats: UserStats): LevelInfo => {
+  return LEVELS.find(level => level.level === userStats.level) || LEVELS[0];
+};
+
+export const getNextLevel = (userStats: UserStats): LevelInfo | undefined => {
+  return LEVELS.find(level => level.level === userStats.level + 1);
+};
+
 export const generateDailyChallenge = (tasks: Task[], date: Date = new Date()): DailyChallenge => {
   const challenges = [
     {
