@@ -67,11 +67,11 @@
       {
         "fullscreen": false,
         "height": 600,
-        "minHeight": 400,
-        "minWidth": 600,
+        "minHeight": 600,
+        "minWidth": 850,
         "resizable": true,
         "title": "Project Manager",
-        "width": 800
+        "width": 850
       }
     ]
   }
