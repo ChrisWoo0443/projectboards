@@ -15,7 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "./ui/dialog";
-import { Calendar } from "./ui/calendar";
+import { Calendar } from "./ui/mantine-calendar";
 import {
   Popover,
   PopoverContent,
@@ -231,14 +231,29 @@ export const CreateTask = ({ isOpen, onClose, onCreateTask, columns, preSelected
             </div>
 
             <div>
-              <Label htmlFor="dueDate">Due Date (MM/DD/YYYY)</Label>
-              <Input
-                id="dueDate"
-                value={typeof formData.dueDate === 'string' ? formData.dueDate : formData.dueDate ? formatDateToString(formData.dueDate as Date) : ""}
-                onChange={(e) => handleDateInputChange(e.target.value)}
-                placeholder="MM/DD/YYYY"
-                className={dateError ? "border-red-500" : ""}
-              />
+              <Label>Due Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={"outline"}
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !formData.dueDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {formData.dueDate ? format(formData.dueDate, "PPP") : <span>Pick a date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={formData.dueDate}
+                    onSelect={(date) => setFormData(prev => ({ ...prev, dueDate: date }))}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
               {dateError && (
                 <p className="text-sm text-red-500 mt-1">{dateError}</p>
               )}

@@ -17,7 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "./ui/dialog";
-import { Calendar } from "./ui/calendar";
+import { Calendar } from "./ui/mantine-calendar";
 import {
   Popover,
   PopoverContent,
@@ -134,29 +134,29 @@ export const EditTask = ({ task, isOpen, onClose, onUpdateTask }: EditTaskProps)
           </div>
 
           <div>
-            <Label htmlFor="dueDate">Due Date (MM/DD/YYYY)</Label>
-            <Input
-              id="dueDate"
-              value={typeof formData.dueDate === 'string' ? formData.dueDate : formData.dueDate ? formatDateToString(formData.dueDate as Date) : ""}
-              onChange={(e) => {
-                const dateStr = e.target.value;
-                
-                if (dateStr.length <= 10) {
-                  // Keep the raw input value while typing
-                  setFormData(prev => ({ ...prev, dueDate: dateStr }));
-                  
-                  // Only parse and set Date object when input is complete
-                  if (dateStr.length === 10) {
-                    const parseResult = parseDateString(dateStr);
-                    
-                    if (parseResult.isValid && parseResult.date) {
-                      setFormData(prev => ({ ...prev, dueDate: parseResult.date! }));
-                    }
-                  }
-                }
-              }}
-              placeholder="MM/DD/YYYY"
-            />
+            <Label>Due Date</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={"outline"}
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !formData.dueDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                   {formData.dueDate instanceof Date ? format(formData.dueDate, "PPP") : <span>Pick a date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                   mode="single"
+                   selected={formData.dueDate instanceof Date ? formData.dueDate : undefined}
+                   onSelect={(date) => setFormData(prev => ({ ...prev, dueDate: date }))}
+                   initialFocus
+                 />
+              </PopoverContent>
+            </Popover>
           </div>
 
           <div className="flex justify-end space-x-3 pt-4">

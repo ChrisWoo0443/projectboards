@@ -46,6 +46,7 @@ export const parseDateString = (dateString: string): DateParseResult => {
   }
 
   // Create date object (month is 0-indexed in JavaScript Date)
+  // Set to noon to avoid timezone issues
   const date = new Date(year, month - 1, day);
   
   // Check if the date is valid (handles cases like February 30th)
@@ -69,9 +70,13 @@ export const formatDateToString = (date: Date): string => {
     return '';
   }
   
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
-  const day = date.getDate().toString().padStart(2, '0');
-  const year = date.getFullYear();
+  // Create a new date at noon to avoid timezone issues when formatting
+  const normalizedDate = new Date(date);
+  normalizedDate.setHours(12, 0, 0, 0);
+  
+  const month = (normalizedDate.getMonth() + 1).toString().padStart(2, '0');
+  const day = normalizedDate.getDate().toString().padStart(2, '0');
+  const year = normalizedDate.getFullYear();
   
   return `${month}/${day}/${year}`;
 };
