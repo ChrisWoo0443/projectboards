@@ -5,6 +5,8 @@ import { Plus, Search, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { VIEW_TYPES } from "../constants";
 import { HeaderPomodoroTimer } from "./HeaderPomodoroTimer";
+import { ProgressHeader } from "./ProgressHeader";
+import { UserStats, DailyChallenge } from "../types/gamification";
 
 interface HeaderProps {
     onCreateTask: () => void;
@@ -12,9 +14,14 @@ interface HeaderProps {
     onSearchChange: (query: string) => void;
     currentBoard?: { name: string };
     onBoardNameChange?: (newName: string) => void;
+    userStats: UserStats;
+    dailyChallenge: DailyChallenge | null;
+    pointsHistory: any[];
+    onUpdateWeeklyGoal: (goal: number) => void;
+    onResetData: () => void;
   }
   
-  export const Header = ({ onCreateTask, searchQuery, onSearchChange, currentBoard, onBoardNameChange }: HeaderProps) => {
+  export const Header = ({ onCreateTask, searchQuery, onSearchChange, currentBoard, onBoardNameChange, userStats, dailyChallenge, pointsHistory, onUpdateWeeklyGoal, onResetData }: HeaderProps) => {
     const { theme, setTheme } = useTheme();
     const [isEditing, setIsEditing] = useState(false);
     const [editedName, setEditedName] = useState("");
@@ -68,6 +75,13 @@ interface HeaderProps {
         </div>
         
         <div className="flex items-center space-x-2">
+          <ProgressHeader
+            userStats={userStats}
+            dailyChallenge={dailyChallenge}
+            pointsHistory={pointsHistory}
+            onUpdateWeeklyGoal={onUpdateWeeklyGoal}
+            onResetData={onResetData}
+          />
           <Button
             onClick={onCreateTask}
             className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:from-violet-700 hover:to-indigo-700"

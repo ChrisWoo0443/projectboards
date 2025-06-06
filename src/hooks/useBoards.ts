@@ -38,27 +38,64 @@ export const useBoards = () => {
     const loadBoards = async () => {
       try {
         const boardsJson = await invoke('load_boards');
-        const parsed = JSON.parse(boardsJson as string);
-        const processedBoards = parsed.map((board: any) => ({
-          ...board,
-          tasks: board.tasks.map((task: any) => ({
-            ...task,
-            dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
-            createdAt: new Date(task.createdAt),
-            completed: task.completed ?? false,
-          })),
-          createdAt: new Date(board.createdAt),
-        }));
         
-        setBoards(processedBoards.length > 0 ? processedBoards : [DEFAULT_BOARD]);
+        // Validate that we received a valid string
+        if (!boardsJson || typeof boardsJson !== 'string') {
+          throw new Error('Invalid response from load_boards');
+        }
+        
+        // Handle empty file case
+        if (boardsJson.trim() === '' || boardsJson.trim() === '[]') {
+          setBoards([DEFAULT_BOARD]);
+          setCurrentBoardId('board-1');
+          return;
+        }
+        
+        const parsed = JSON.parse(boardsJson);
+        
+        // Validate that parsed data is an array
+        if (!Array.isArray(parsed)) {
+          throw new Error('Invalid data format: expected array');
+        }
+        
+        // Validate and process boards
+        const processedBoards = parsed
+          .filter((board: any) => board && typeof board === 'object' && board.id && board.name)
+          .map((board: any) => ({
+            ...board,
+            tasks: Array.isArray(board.tasks) ? board.tasks.map((task: any) => ({
+              ...task,
+              dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
+              createdAt: task.createdAt ? new Date(task.createdAt) : new Date(),
+              completed: task.completed ?? false,
+            })) : [],
+            columns: Array.isArray(board.columns) ? board.columns : DEFAULT_COLUMNS,
+            createdAt: board.createdAt ? new Date(board.createdAt) : new Date(),
+          }));
+        
+        if (processedBoards.length > 0) {
+          setBoards(processedBoards);
+          // Ensure current board ID is valid
+          const validBoardIds = processedBoards.map(b => b.id);
+          if (!validBoardIds.includes(currentBoardId)) {
+            setCurrentBoardId(processedBoards[0].id);
+          }
+        } else {
+          // No valid boards found, use default
+          setBoards([DEFAULT_BOARD]);
+          setCurrentBoardId('board-1');
+        }
       } catch (error) {
         console.error('Error loading boards:', error);
         toast(TOAST_MESSAGES.LOAD_ERROR);
+        // Reset to default board on any error
+        setBoards([DEFAULT_BOARD]);
+        setCurrentBoardId('board-1');
       }
     };
 
     loadBoards();
-  }, [toast]);
+  }, [toast, currentBoardId]);
 
   // Save boards to storage
   useEffect(() => {

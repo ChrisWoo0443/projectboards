@@ -46,6 +46,9 @@ const Index = () => {
   // Local component state
   const tasks = currentBoard?.tasks || [];
   
+  // Get all tasks from all boards for gamification
+  const allTasks = boards.flatMap(board => board.tasks || []);
+  
   // Gamification hook
   const {
     userStats,
@@ -62,7 +65,7 @@ const Index = () => {
     getRecentPointsHistory,
     setShowLevelUp,
     setShowAchievement,
-  } = useGamification(tasks);
+  } = useGamification(allTasks);
   const columns = currentBoard?.columns || [];
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -154,17 +157,21 @@ const Index = () => {
                   description: `Board name has been updated to "${newName}".`
                 });
               }}
+              userStats={userStats}
+              dailyChallenge={dailyChallenge}
+              pointsHistory={pointsHistory}
+              onUpdateWeeklyGoal={updateWeeklyGoal}
+              onResetData={resetGamification}
             />
           </div>
         </div>
         <main className="container mx-auto px-4 py-8">
         <Tabs defaultValue={VIEW_TYPES.BOARD} className="w-full">
           <div className="flex items-center justify-between mb-8">
-            <TabsList className="grid w-full max-w-lg grid-cols-4">
+            <TabsList className="grid w-full max-w-lg grid-cols-3">
                <TabsTrigger value={VIEW_TYPES.BOARD}>Board View</TabsTrigger>
                <TabsTrigger value={VIEW_TYPES.CALENDAR}>Calendar View</TabsTrigger>
                <TabsTrigger value={VIEW_TYPES.LIST}>List View</TabsTrigger>
-               <TabsTrigger value="gamification">Progress</TabsTrigger>
              </TabsList>
             
             <ColumnManager
@@ -206,15 +213,7 @@ const Index = () => {
             />
           </TabsContent>
           
-          <TabsContent value="gamification" className="mt-6">
-              <GamificationWidget
-                userStats={userStats}
-                dailyChallenge={dailyChallenge}
-                pointsHistory={pointsHistory}
-                onUpdateWeeklyGoal={updateWeeklyGoal}
-                onResetData={resetGamification}
-              />
-            </TabsContent>
+
 
 
         </Tabs>
