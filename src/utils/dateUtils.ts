@@ -41,8 +41,8 @@ export const parseDateString = (dateString: string): DateParseResult => {
     return { isValid: false, error: "Day must be between 1 and 31" };
   }
 
-  if (year < 1900 || year > 2100) {
-    return { isValid: false, error: "Year must be between 1900 and 2100" };
+  if (year < 2000 || year > 2100) {
+    return { isValid: false, error: "Year must be between 2000 and 2100" };
   }
 
   // Create date object (month is 0-indexed in JavaScript Date)
