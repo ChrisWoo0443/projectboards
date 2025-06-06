@@ -6,13 +6,17 @@ import { Header } from "../components/Header";
 import { CreateTask } from "../components/CreateTask";
 import { ColumnManager } from "../components/ColumnManager";
 import { ProjectSelector } from "../components/ProjectSelector";
+import { GamificationWidget } from "../components/GamificationWidget";
+import { GamificationNotifications } from "../components/GamificationNotifications";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { useBoards } from "../hooks/useBoards";
 import { useTasks } from "../hooks/useTasks";
 import { useColumns } from "../hooks/useColumns";
+import { useGamification } from "../hooks/useGamification";
 import { filterTasksBySearch } from "../utils/taskUtils";
 import { UI_CONFIG, VIEW_TYPES } from "../constants";
 import { useToast } from "../components/ui/use-toast";
+import { Task } from "../types/kanban";
 
 const Index = () => {
   const { toast } = useToast();
@@ -40,6 +44,24 @@ const Index = () => {
 
   // Local component state
   const tasks = currentBoard?.tasks || [];
+  
+  // Gamification hook
+  const {
+    userStats,
+    pointsHistory,
+    dailyChallenge,
+    showLevelUp,
+    showAchievement,
+    isLoaded: gamificationLoaded,
+    handleTaskCompletion,
+    updateWeeklyGoal,
+    resetGamification,
+    getUnlockedAchievements,
+    getLockedAchievements,
+    getRecentPointsHistory,
+    setShowLevelUp,
+    setShowAchievement,
+  } = useGamification(tasks);
   const columns = currentBoard?.columns || [];
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -62,11 +84,41 @@ const Index = () => {
     setPreSelectedColumnId(null);
   };
 
+  // Enhanced task update handler with gamification
+  const handleTaskUpdate = (taskId: string, updates: Partial<Task>) => {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    const wasCompleted = task.completed;
+    const isNowCompleted = updates.completed;
+
+    updateTask(taskId, updates);
+
+    // Handle gamification for task completion
+    if (!wasCompleted && isNowCompleted && gamificationLoaded) {
+      const updatedTask = { ...task, ...updates };
+      handleTaskCompletion(updatedTask);
+      
+      toast({
+        title: "Task completed! 🎉",
+        description: `You earned points for completing "${task.title}"`
+      });
+    }
+  };
+
   // Filter tasks based on search query
   const filteredTasks = filterTasksBySearch(tasks, searchQuery);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+      {/* Gamification Notifications */}
+      <GamificationNotifications
+        userLevel={userStats.level}
+        showLevelUp={showLevelUp}
+        showAchievement={showAchievement}
+        onCloseLevelUp={() => setShowLevelUp(false)}
+        onCloseAchievement={() => setShowAchievement(null)}
+      />
       {/* Sidebar */}
       <ProjectSelector
         boards={boards}
@@ -107,10 +159,11 @@ const Index = () => {
         <main className="container mx-auto px-4 py-8">
         <Tabs defaultValue={VIEW_TYPES.BOARD} className="w-full">
           <div className="flex items-center justify-between mb-8">
-            <TabsList className="grid w-full max-w-md grid-cols-3">
+            <TabsList className="grid w-full max-w-lg grid-cols-4">
               <TabsTrigger value={VIEW_TYPES.BOARD}>Board View</TabsTrigger>
               <TabsTrigger value={VIEW_TYPES.CALENDAR}>Calendar View</TabsTrigger>
               <TabsTrigger value={VIEW_TYPES.LIST}>List View</TabsTrigger>
+              <TabsTrigger value="gamification">Progress</TabsTrigger>
             </TabsList>
             
             <ColumnManager
@@ -127,7 +180,7 @@ const Index = () => {
                 tasks={filteredTasks}
                 columns={currentBoard.columns}
                 onMoveTask={moveTask}
-                onUpdateTask={updateTask}
+                onUpdateTask={handleTaskUpdate}
                 onDeleteTask={deleteTask}
                 onCreateTask={handleCreateTaskFromColumn}
                 onUpdateColumn={updateColumn}
@@ -139,7 +192,7 @@ const Index = () => {
           <TabsContent value={VIEW_TYPES.CALENDAR}>
             <CalendarView 
               tasks={filteredTasks}
-              onUpdateTask={updateTask}
+              onUpdateTask={handleTaskUpdate}
             />
           </TabsContent>
           
@@ -147,8 +200,18 @@ const Index = () => {
             <ListView 
               tasks={filteredTasks}
               columns={columns}
-              onUpdateTask={updateTask}
+              onUpdateTask={handleTaskUpdate}
               onDeleteTask={deleteTask}
+            />
+          </TabsContent>
+          
+          <TabsContent value="gamification">
+            <GamificationWidget
+              userStats={userStats}
+              dailyChallenge={dailyChallenge}
+              pointsHistory={pointsHistory}
+              onUpdateWeeklyGoal={updateWeeklyGoal}
+              onResetData={resetGamification}
             />
           </TabsContent>
         </Tabs>

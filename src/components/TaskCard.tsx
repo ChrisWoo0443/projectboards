@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Task } from "../types/kanban";
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
-import { Calendar, MoreHorizontal, Trash2, Edit } from "lucide-react";
+import { Calendar, MoreHorizontal, Trash2, Edit, Star, Zap } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,6 +13,7 @@ import { format } from "date-fns";
 import { EditTask } from "./EditTask";
 import { getCategoryColor, getPriorityColor } from '../utils/taskUtils';
 import { isTaskOverdue } from "../utils/taskUtils";
+import { calculateTaskPoints } from '../utils/gamificationUtils';
 
 interface TaskCardProps {
   task: Task;
@@ -24,6 +25,7 @@ export const TaskCard = ({ task, onUpdate, onDelete }: TaskCardProps) => {
   const [isEditOpen, setIsEditOpen] = useState(false);
 
   const isOverdue = isTaskOverdue(task);
+  const potentialPoints = calculateTaskPoints(task);
 
   return (
     <>
@@ -32,13 +34,14 @@ export const TaskCard = ({ task, onUpdate, onDelete }: TaskCardProps) => {
           <div className="flex items-center gap-2 flex-1">
             <button
               onClick={() => onUpdate({ completed: !task.completed })}
-              className="flex-shrink-0 w-6 h-6 rounded-full border-2 border-slate-300 dark:border-slate-600 hover:border-slate-400 dark:hover:border-slate-500 transition-colors flex items-center justify-center"
+              className="flex-shrink-0 w-6 h-6 rounded-full border-2 border-slate-300 dark:border-slate-600 hover:border-slate-400 dark:hover:border-slate-500 transition-colors flex items-center justify-center group"
               style={{
                 backgroundColor: task.completed ? '#10b981' : 'transparent',
                 borderColor: task.completed ? '#10b981' : undefined
               }}
+              title={task.completed ? 'Mark as incomplete' : `Complete task (+${potentialPoints} points)`}
             >
-              {task.completed && (
+              {task.completed ? (
                 <svg
                   className="w-3.5 h-3.5 text-white"
                   fill="currentColor"
@@ -50,6 +53,8 @@ export const TaskCard = ({ task, onUpdate, onDelete }: TaskCardProps) => {
                     clipRule="evenodd"
                   />
                 </svg>
+              ) : (
+                <Zap className="w-3 h-3 text-slate-400 group-hover:text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity" />
               )}
             </button>
             <h4 className={`font-medium text-slate-900 dark:text-slate-100 text-sm leading-tight flex-1 ${
@@ -88,6 +93,12 @@ export const TaskCard = ({ task, onUpdate, onDelete }: TaskCardProps) => {
         )}
 
         <div className="flex flex-wrap gap-2 mb-3">
+          {!task.completed && (
+            <Badge variant="outline" className="text-xs bg-yellow-50 text-yellow-700 border-yellow-200">
+              <Star className="w-3 h-3 mr-1" />
+              {potentialPoints}pts
+            </Badge>
+          )}
           <Badge variant="secondary" className={getCategoryColor(task.category)}>
             {task.category}
           </Badge>
