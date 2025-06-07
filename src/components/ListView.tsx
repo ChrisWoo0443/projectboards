@@ -186,6 +186,7 @@ export const ListView = ({ tasks, columns, onUpdateTask, onDeleteTask }: ListVie
                       {task.dueDate && (
                         <Badge variant="outline">
                           Due: {format(task.dueDate, 'MMM d, yyyy')}
+                          {task.dueTime && <span className="ml-1">at {task.dueTime}</span>}
                         </Badge>
                       )}
                     </div>

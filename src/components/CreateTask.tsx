@@ -16,12 +16,7 @@ import {
   DialogTitle,
 } from "./ui/dialog";
 import { Calendar } from "./ui/mantine-calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "./ui/popover";
-import { CalendarIcon } from "lucide-react";
+
 import { format } from "date-fns";
 import { cn } from "../lib/utils";
 import { Column, CreateTaskData } from "../types/kanban";
@@ -45,6 +40,7 @@ export const CreateTask = ({ isOpen, onClose, onCreateTask, columns, preSelected
     category: DEFAULT_TASK_VALUES.CATEGORY as string,
     priority: DEFAULT_TASK_VALUES.PRIORITY as "low" | "medium" | "high",
     dueDate: undefined as Date | undefined,
+    dueTime: "" as string,
   });
 
   const [dateError, setDateError] = useState<string>("");
@@ -87,6 +83,7 @@ export const CreateTask = ({ isOpen, onClose, onCreateTask, columns, preSelected
       category: "",
       priority: "medium",
       dueDate: undefined,
+      dueTime: "",
     });
     setDateError("");
     onClose();
@@ -100,6 +97,7 @@ export const CreateTask = ({ isOpen, onClose, onCreateTask, columns, preSelected
       category: DEFAULT_TASK_VALUES.CATEGORY as string,
       priority: DEFAULT_TASK_VALUES.PRIORITY as "low" | "medium" | "high",
       dueDate: undefined,
+      dueTime: "",
     });
     setDateError("");
   };
@@ -231,29 +229,21 @@ export const CreateTask = ({ isOpen, onClose, onCreateTask, columns, preSelected
             </div>
 
             <div>
-              <Label>Due Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant={"outline"}
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !formData.dueDate && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formData.dueDate ? format(formData.dueDate, "PPP") : <span>Pick a date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={formData.dueDate}
-                    onSelect={(date) => setFormData(prev => ({ ...prev, dueDate: date }))}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
+              <div className="space-y-2">
+                <Calendar
+                  mode="single"
+                  selected={formData.dueDate instanceof Date ? formData.dueDate : undefined}
+                  onSelect={(date) => {
+                    setFormData(prev => ({ 
+                      ...prev, 
+                      dueDate: date || undefined,
+                      dueTime: date ? format(date, "HH:mm") : ""
+                    }));
+                  }}
+                  withTime={true}
+                  className="w-full"
+                />
+              </div>
               {dateError && (
                 <p className="text-sm text-red-500 mt-1">{dateError}</p>
               )}
