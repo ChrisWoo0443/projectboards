@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Label } from './label';
 import { Button } from './button';
-import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface CalendarProps {
@@ -96,41 +95,54 @@ function Calendar({
   return (
     <div className={className}>
       <div className="space-y-3">
-        <div>
-          <Label htmlFor="date-input" className="text-sm font-medium">
-            {withTime ? 'Pick date and time' : 'Pick a date'}
-          </Label>
-          <div className="mt-1">
-            <input
-              id="date-input"
-              type="date"
-              value={formatDateForInput(selected)}
-              onChange={handleDateChange}
-              className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl shadow-sm transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-violet-100 focus:border-violet-400 hover:border-gray-300 text-sm font-medium"
-            />
-          </div>
-        </div>
-        
-        {withTime && (
+        {withTime ? (
           <div>
-            <Label htmlFor="time-input" className="text-sm font-medium">
-              Time
+            <Label className="text-sm font-medium">
+              Pick date and time
+            </Label>
+            <div className="mt-1 flex gap-2">
+              <div className="flex-1">
+                <input
+                  id="date-input"
+                  type="date"
+                  value={formatDateForInput(selected)}
+                  onChange={handleDateChange}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                />
+              </div>
+              <div className="flex-1">
+                <input
+                  id="time-input"
+                  type="time"
+                  value={formatTimeForInput(selected)}
+                  onChange={handleTimeChange}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                />
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div>
+            <Label htmlFor="date-input" className="text-sm font-medium">
+              Pick a date
             </Label>
             <div className="mt-1">
               <input
-                id="time-input"
-                type="time"
-                value={formatTimeForInput(selected)}
-                onChange={handleTimeChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 text-sm"
+                id="date-input"
+                type="date"
+                value={formatDateForInput(selected)}
+                onChange={handleDateChange}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               />
             </div>
           </div>
         )}
         
         {selected && (
-          <div className="text-sm text-gray-600">
-            Selected: {withTime ? format(selected, 'PPP p') : format(selected, 'PPP')}
+          <div className="p-3 rounded-md bg-muted border border-border">
+            <div className="text-sm font-medium text-foreground">
+              Selected: {withTime ? format(selected, 'PPP p') : format(selected, 'PPP')}
+            </div>
           </div>
         )}
         
