@@ -115,7 +115,7 @@ export const TaskCard = ({ task, onUpdate, onDelete }: TaskCardProps) => {
           }`}>
             <Calendar className="h-3 w-3 mr-1" />
             {format(task.dueDate, 'MMM d, yyyy')}
-            {task.dueTime && <span className="ml-1">at {task.dueTime}</span>}
+            {task.dueTime && <span className="ml-1"></span>}
             {isOverdue && <span className="ml-1 font-medium">(Overdue)</span>}
           </div>
         )}
