@@ -15,13 +15,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "./ui/dialog";
-import { Calendar } from "./ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "./ui/popover";
-import { CalendarIcon } from "lucide-react";
+import { Calendar } from "./ui/mantine-calendar";
+
 import { format } from "date-fns";
 import { cn } from "../lib/utils";
 import { Column, CreateTaskData } from "../types/kanban";
@@ -45,6 +40,7 @@ export const CreateTask = ({ isOpen, onClose, onCreateTask, columns, preSelected
     category: DEFAULT_TASK_VALUES.CATEGORY as string,
     priority: DEFAULT_TASK_VALUES.PRIORITY as "low" | "medium" | "high",
     dueDate: undefined as Date | undefined,
+    dueTime: "" as string,
   });
 
   const [dateError, setDateError] = useState<string>("");
@@ -87,6 +83,7 @@ export const CreateTask = ({ isOpen, onClose, onCreateTask, columns, preSelected
       category: "",
       priority: "medium",
       dueDate: undefined,
+      dueTime: "",
     });
     setDateError("");
     onClose();
@@ -100,6 +97,7 @@ export const CreateTask = ({ isOpen, onClose, onCreateTask, columns, preSelected
       category: DEFAULT_TASK_VALUES.CATEGORY as string,
       priority: DEFAULT_TASK_VALUES.PRIORITY as "low" | "medium" | "high",
       dueDate: undefined,
+      dueTime: "",
     });
     setDateError("");
   };
@@ -231,14 +229,21 @@ export const CreateTask = ({ isOpen, onClose, onCreateTask, columns, preSelected
             </div>
 
             <div>
-              <Label htmlFor="dueDate">Due Date (MM/DD/YYYY)</Label>
-              <Input
-                id="dueDate"
-                value={typeof formData.dueDate === 'string' ? formData.dueDate : formData.dueDate ? formatDateToString(formData.dueDate as Date) : ""}
-                onChange={(e) => handleDateInputChange(e.target.value)}
-                placeholder="MM/DD/YYYY"
-                className={dateError ? "border-red-500" : ""}
-              />
+              <div className="space-y-2">
+                <Calendar
+                  mode="single"
+                  selected={formData.dueDate instanceof Date ? formData.dueDate : undefined}
+                  onSelect={(date) => {
+                    setFormData(prev => ({ 
+                      ...prev, 
+                      dueDate: date || undefined,
+                      dueTime: date ? format(date, "HH:mm") : ""
+                    }));
+                  }}
+                  withTime={true}
+                  className="w-full"
+                />
+              </div>
               {dateError && (
                 <p className="text-sm text-red-500 mt-1">{dateError}</p>
               )}

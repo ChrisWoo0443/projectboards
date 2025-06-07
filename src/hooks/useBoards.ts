@@ -22,7 +22,7 @@ const DEFAULT_BOARD: Board = {
       columnId: 'todo',
       category: 'General',
       priority: TASK_PRIORITIES.HIGH,
-      dueDate: new Date('2025-06-10'),
+      dueDate: new Date('2025/06/10 12:00:00'), // June 10, 2025 using timezone-aware format
       createdAt: new Date(),
     },
   ],
@@ -65,7 +65,25 @@ export const useBoards = () => {
             ...board,
             tasks: Array.isArray(board.tasks) ? board.tasks.map((task: any) => ({
               ...task,
-              dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
+              dueDate: task.dueDate ? (() => {
+                // Parse date using timezone-aware format to avoid shifts
+                const dateStr = task.dueDate;
+                if (typeof dateStr === 'string') {
+                  // Extract date components and create local timezone date string
+                  const date = new Date(dateStr);
+                  const year = date.getFullYear();
+                  const month = String(date.getMonth() + 1).padStart(2, '0');
+                  const day = String(date.getDate()).padStart(2, '0');
+                  // Use yyyy/mm/dd format which JavaScript interprets as local time
+                  return new Date(`${year}/${month}/${day} 12:00:00`);
+                } else {
+                  // If it's already a Date object
+                  const year = dateStr.getFullYear();
+                  const month = String(dateStr.getMonth() + 1).padStart(2, '0');
+                  const day = String(dateStr.getDate()).padStart(2, '0');
+                  return new Date(`${year}/${month}/${day} 12:00:00`);
+                }
+              })() : undefined,
               createdAt: task.createdAt ? new Date(task.createdAt) : new Date(),
               completed: task.completed ?? false,
             })) : [],

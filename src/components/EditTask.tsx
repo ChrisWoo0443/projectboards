@@ -17,13 +17,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "./ui/dialog";
-import { Calendar } from "./ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "./ui/popover";
-import { CalendarIcon } from "lucide-react";
+import { Calendar } from "./ui/mantine-calendar";
+
 import { format } from "date-fns";
 import { cn } from "../lib/utils";
 import { TASK_PRIORITIES_ARRAY, TASK_CATEGORIES } from "../constants";
@@ -43,6 +38,7 @@ export const EditTask = ({ task, isOpen, onClose, onUpdateTask }: EditTaskProps)
     category: task.category,
     priority: task.priority,
     dueDate: task.dueDate,
+    dueTime: task.dueTime || "",
   });
 
   useEffect(() => {
@@ -52,6 +48,7 @@ export const EditTask = ({ task, isOpen, onClose, onUpdateTask }: EditTaskProps)
       category: task.category,
       priority: task.priority,
       dueDate: task.dueDate,
+      dueTime: task.dueTime || "",
     });
   }, [task]);
 
@@ -134,29 +131,21 @@ export const EditTask = ({ task, isOpen, onClose, onUpdateTask }: EditTaskProps)
           </div>
 
           <div>
-            <Label htmlFor="dueDate">Due Date (MM/DD/YYYY)</Label>
-            <Input
-              id="dueDate"
-              value={typeof formData.dueDate === 'string' ? formData.dueDate : formData.dueDate ? formatDateToString(formData.dueDate as Date) : ""}
-              onChange={(e) => {
-                const dateStr = e.target.value;
-                
-                if (dateStr.length <= 10) {
-                  // Keep the raw input value while typing
-                  setFormData(prev => ({ ...prev, dueDate: dateStr }));
-                  
-                  // Only parse and set Date object when input is complete
-                  if (dateStr.length === 10) {
-                    const parseResult = parseDateString(dateStr);
-                    
-                    if (parseResult.isValid && parseResult.date) {
-                      setFormData(prev => ({ ...prev, dueDate: parseResult.date! }));
-                    }
-                  }
-                }
-              }}
-              placeholder="MM/DD/YYYY"
-            />
+              <div className="space-y-2">
+                <Calendar
+                  mode="single"
+                  selected={formData.dueDate instanceof Date ? formData.dueDate : undefined}
+                  onSelect={(date) => {
+                    setFormData(prev => ({ 
+                      ...prev, 
+                      dueDate: date || undefined,
+                      dueTime: date ? format(date, "HH:mm") : ""
+                    }));
+                  }}
+                  withTime={true}
+                  className="w-full"
+                />
+              </div>
           </div>
 
           <div className="flex justify-end space-x-3 pt-4">

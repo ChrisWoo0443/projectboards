@@ -45,8 +45,12 @@ export const parseDateString = (dateString: string): DateParseResult => {
     return { isValid: false, error: "Year must be between 2000 and 2100" };
   }
 
-  // Create date object (month is 0-indexed in JavaScript Date)
-  const date = new Date(year, month - 1, day);
+  // Create date object using timezone-aware format to avoid timezone issues
+  // Use yyyy/mm/dd HH:MM:SS format which JavaScript interprets as local time
+  const monthStr = String(month).padStart(2, '0');
+  const dayStr = String(day).padStart(2, '0');
+  const date = new Date(`${year}/${monthStr}/${dayStr} 12:00:00`);
+
   
   // Check if the date is valid (handles cases like February 30th)
   if (isNaN(date.getTime()) || 
@@ -69,9 +73,13 @@ export const formatDateToString = (date: Date): string => {
     return '';
   }
   
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
-  const day = date.getDate().toString().padStart(2, '0');
-  const year = date.getFullYear();
+  // Create a new date at noon to avoid timezone issues when formatting
+  const normalizedDate = new Date(date);
+  normalizedDate.setHours(12, 0, 0, 0);
+  
+  const month = (normalizedDate.getMonth() + 1).toString().padStart(2, '0');
+  const day = normalizedDate.getDate().toString().padStart(2, '0');
+  const year = normalizedDate.getFullYear();
   
   return `${month}/${day}/${year}`;
 };
