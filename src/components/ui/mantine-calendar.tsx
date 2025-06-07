@@ -42,34 +42,15 @@ function Calendar({
       }
       
       if (!isNaN(date.getTime())) {
-        // If we have an existing selected date with time, preserve the time
-        if (selected && withTime) {
-          const newDate = new Date(date);
-          newDate.setHours(selected.getHours(), selected.getMinutes(), 0, 0);
-          if (onSelect) {
-            onSelect(newDate);
-          }
-        } else {
-          if (onSelect) {
-            onSelect(date);
-          }
+        // Always set time to midnight (00:00:00)
+        date.setHours(0, 0, 0, 0);
+        if (onSelect) {
+          onSelect(date);
         }
       }
     } else {
       if (onSelect) {
         onSelect(null);
-      }
-    }
-  };
-
-  const handleTimeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const timeValue = event.target.value;
-    if (selected && timeValue) {
-      const [hours, minutes] = timeValue.split(':').map(Number);
-      const newDate = new Date(selected);
-      newDate.setHours(hours, minutes, 0, 0);
-      if (onSelect) {
-        onSelect(newDate);
       }
     }
   };
@@ -85,63 +66,28 @@ function Calendar({
     return `${year}-${month}-${day}`;
   };
 
-  const formatTimeForInput = (date: Date | undefined) => {
-    if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
-      return '';
-    }
-    return format(date, 'HH:mm');
-  };
-
   return (
     <div className={className}>
       <div className="space-y-3">
-        {withTime ? (
-          <div>
-            <Label className="text-sm font-medium">
-              Pick date and time
-            </Label>
-            <div className="mt-1 flex gap-2">
-              <div className="flex-1">
-                <input
-                  id="date-input"
-                  type="date"
-                  value={formatDateForInput(selected)}
-                  onChange={handleDateChange}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                />
-              </div>
-              <div className="flex-1">
-                <input
-                  id="time-input"
-                  type="time"
-                  value={formatTimeForInput(selected)}
-                  onChange={handleTimeChange}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                />
-              </div>
-            </div>
+        <div>
+          <Label htmlFor="date-input" className="text-sm font-medium">
+            Pick a date
+          </Label>
+          <div className="mt-1">
+            <input
+              id="date-input"
+              type="date"
+              value={formatDateForInput(selected)}
+              onChange={handleDateChange}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            />
           </div>
-        ) : (
-          <div>
-            <Label htmlFor="date-input" className="text-sm font-medium">
-              Pick a date
-            </Label>
-            <div className="mt-1">
-              <input
-                id="date-input"
-                type="date"
-                value={formatDateForInput(selected)}
-                onChange={handleDateChange}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              />
-            </div>
-          </div>
-        )}
+        </div>
         
         {selected && (
           <div className="p-3 rounded-md bg-muted border border-border">
             <div className="text-sm font-medium text-foreground">
-              Selected: {withTime ? format(selected, 'PPP p') : format(selected, 'PPP')}
+              Selected: {format(selected, 'PPP')}
             </div>
           </div>
         )}
